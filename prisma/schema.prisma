@@ -1,0 +1,356 @@
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountStatus {
+  available
+  unavailable
+}
+
+enum EmployeeStatus {
+  active
+  pending
+  fired
+}
+
+enum Gender {
+  male
+  female
+  others
+}
+
+enum ReservationType {
+  booked
+  reserve
+}
+
+enum PaymentStatus {
+  paid
+  pending
+  cancel
+}
+
+enum PaymentMethod {
+  cash
+  credit_card
+  khqr
+  leave
+}
+
+model Role {
+  role_id Int    @id @default(autoincrement())
+  name    String @unique
+
+  auths Auth[]
+}
+
+model Auth {
+  auth_id      Int   @id @default(autoincrement())
+  email        String   @unique
+  password     String
+  role_id      Int?
+  employee_id  Int?     @unique
+  customer_id  Int?     @unique
+  created_at   DateTime @default(now())
+
+  role      Role?     @relation(fields: [role_id], references: [role_id])
+  employee  Employee? @relation(fields: [employee_id], references: [employee_id])
+  customer  Customer? @relation(fields: [customer_id], references: [customer_id])
+}
+
+model Employee {
+  employee_id    Int      @id @default(autoincrement())
+  employee_code  String?  @unique
+  status EmployeeStatus @default(active)
+  first_name     String
+  last_name      String
+  gender         Gender   @default(male)
+  dob            DateTime?
+  phone          String?  @unique
+  position_id    Int?
+  department_id  Int?
+  salary         Decimal  @db.Decimal(10,2)
+  hired_date     DateTime?
+  created_at     DateTime @default(now())
+
+  auth      Auth?
+  info      EmployeeInfo?
+  position  Position? @relation(fields: [position_id], references: [position_id])
+  department Department? @relation(fields: [department_id], references: [department_id])
+  reservedetails   ReservationDetail[]
+  sales    Sale[]
+  opens   OpenShift[]
+  closes   CloseShift[]
+}
+
+model EmployeeInfo  {
+  info_id     Int     @id @default(autoincrement()) 
+  employee_id    Int      @unique
+  picture        String?
+  region      String?
+  email          String?  @unique
+  address        String?
+  city           String?
+  state          String?
+  country     String?
+  note      String?
+
+  employee Employee @relation(fields: [employee_id], references: [employee_id])
+}
+
+model Department {
+  department_id   Int      @id @default(autoincrement())
+  department_name String?
+  department_code String?
+  memo            String?
+  created_at      DateTime @default(now())
+
+  positions Position[]
+  employees Employee[]
+}
+
+model Position {
+  position_id   Int      @id @default(autoincrement())
+  department_id Int
+  position_name String?
+  position_code String?
+  memo          String?
+  created_at    DateTime @default(now())
+
+  department Department @relation(fields: [department_id], references: [department_id])
+  employees   Employee[]
+}
+
+model Customer {
+  customer_id    Int      @id @default(autoincrement())
+  account_status AccountStatus @default(available)
+  first_name     String
+  last_name      String
+  picture        String?
+  gender         Gender   @default(male)
+  email          String?  @unique
+  phone          String?
+  address        String?
+  city           String?
+  state          String?
+  created_at     DateTime @default(now())
+
+  auth    Auth?
+  reservedetails ReservationDetail[]
+  sales    Sale[]
+}
+
+model ReservationDetail {
+  reserve_detail_id Int    @id @default(autoincrement())
+  room_id           Int
+  employee_id       Int
+  customer_id       Int?
+  reservation_id    Int
+  price             Decimal @db.Decimal(10,2)   
+  night             Int
+  amount            Decimal @db.Decimal(10,2)
+
+  room      Room     @relation(fields: [room_id], references: [room_id])
+  employee  Employee @relation(fields: [employee_id], references: [employee_id])
+  customer  Customer? @relation(fields: [customer_id], references: [customer_id])
+  reservation Reservation @relation(fields: [reservation_id], references: [reservation_id])
+}
+
+model Reservation {
+  reservation_id  Int   @id @default(autoincrement())
+  checkin_date    DateTime
+  checkout_date   DateTime
+  is_checkin      Boolean
+  is_checkout     Boolean
+  reservation_type ReservationType @default(reserve)
+  adults          Int     @default(1)
+  children        Int     @default(0)
+  payment_status  PaymentStatus @default(paid)
+  payment_method  PaymentMethod @default(cash)
+  memo            String?
+  is_hidden       Boolean @default(false)
+
+  details ReservationDetail[]
+}
+
+model Room {
+  room_id       Int      @id @default(autoincrement())
+  room_type_id     Int?
+  room_name     String?
+  price         Decimal  @db.Decimal(10,2)
+  is_ac         Boolean  @default(true)
+  capacity      Int      @default(4)
+  size          Int      @default(25)
+  discount_rate Int      @default(0)
+  is_booked     Boolean  @default(false)
+  status        Boolean  @default(true)
+  created_at    DateTime @default(now())
+
+  roomtype    RoomType?    @relation(fields: [room_type_id], references: [room_type_id])
+  pictures RoomPicture[]
+  reservedetails  ReservationDetail[]
+  sales    Sale[]
+}
+
+model RoomType {
+  room_type_id      Int    @id    @default(autoincrement())
+  type_name     String    @unique
+  type_code     String    @unique
+
+  rooms   Room[]
+}
+
+model RoomPicture {
+  room_picture_id Int      @id @default(autoincrement())
+  room_id         Int
+  picture_name    String?
+  picture         String
+  created_at      DateTime @default(now())
+
+  room Room @relation(fields: [room_id], references: [room_id])
+}
+
+model Product {
+  product_id        Int      @id @default(autoincrement())
+  product_name      String
+  product_code      String?  
+  product_category_id Int?
+  picture           String?  
+  price             Decimal  @db.Decimal(10,2)  @default(0.00)
+  discount_rate     Int      @default(0)
+  status            Boolean  @default(true)
+  created_at         DateTime @default(now())
+
+  category  ProductCategory? @relation(fields: [product_category_id], references: [product_category_id])
+  stocks    ProductStock[]
+  saledetails      SaleDetail[]
+}
+
+model ProductCategory {
+  product_category_id Int      @id @default(autoincrement())
+  picture             String?  
+  category_name       String
+  category_code       String?
+  memo                String?  
+  created_at           DateTime @default(now())
+
+  products    Product[]
+}
+
+model ProductStock {
+  product_stock_id Int      @id @default(autoincrement())
+  product_id       Int?
+  supplier_id      Int?
+  inv_number       String?
+  product_add      Int      @default(0)
+  add_price        Decimal   @db.Decimal(12,2)  @default(0.00)
+  add_date         DateTime?
+  memo             String?
+  created_at        DateTime @default(now())
+
+  product    Product?     @relation(fields: [product_id], references: [product_id])
+  supplier     Supplier?    @relation(fields: [supplier_id], references: [supplier_id])
+}
+
+model Supplier {
+  supplier_id   Int      @id @default(autoincrement())
+  supplier_name String
+  company_name  String?
+  phone         String?
+  email         String?
+  address       String?
+  created_at     DateTime @default(now())
+
+  stocks     ProductStock[]
+}
+
+model Sale {
+  sale_id       Int      @id @default(autoincrement())
+  employee_id   Int
+  room_id       Int?
+  customer_id   Int?
+  sale_date     DateTime    @default(now())
+  discount_rate Int      @default(0)
+  total         Decimal   @db.Decimal(12,2)
+  amount        Decimal   @db.Decimal(12,2)
+  created_at     DateTime @default(now())
+
+  room     Room?    @relation(fields: [room_id], references: [room_id])
+  employee    Employee      @relation(fields: [employee_id], references: [employee_id])
+  customer    Customer?   @relation(fields: [customer_id], references: [customer_id])
+  saledetails     SaleDetail[]
+}
+
+model SaleDetail {
+  sale_detail_id Int      @id @default(autoincrement())
+  sale_id        Int
+  product_id     Int
+  quantity       Int
+  amount         Decimal   @db.Decimal(12,2)
+  created_at      DateTime @default(now())
+
+  sale Sale @relation(fields: [sale_id], references: [sale_id])
+  product    Product  @relation(fields: [product_id], references: [product_id])
+}
+
+model OpenShift {
+  open_shift_id   Int      @id @default(autoincrement())
+  employee_id     Int?
+  bank_note_id    Int    @unique
+  shift_code      String
+  open_khmer_riel Decimal   @db.Decimal(12,2)  @default(0.00)
+  open_us_dollar  Decimal    @db.Decimal(12,2)  @default(0.00)
+  open_date       DateTime?
+  created_at       DateTime @default(now())
+
+  banknote    BankNote?  @relation(fields: [bank_note_id], references: [bank_note_id])
+  employee    Employee?   @relation(fields: [employee_id], references: [employee_id])
+}
+
+model CloseShift {
+  close_shift_id  Int      @id @default(autoincrement())
+  employee_id     Int?
+  bank_note_id    Int    @unique
+  shift_code      String
+  close_khmer_riel Decimal   @db.Decimal(12,2)  @default(0.00)
+  close_us_dollar  Decimal   @db.Decimal(12,2)  @default(0.00)
+  close_date      DateTime?
+  created_at       DateTime @default(now())
+
+  banknote    BankNote?  @relation(fields: [bank_note_id], references: [bank_note_id])
+  employee    Employee?   @relation(fields: [employee_id], references: [employee_id])
+}
+
+
+model BankNote {
+  bank_note_id Int @id @default(autoincrement())
+  khmer_100    Int? @default(0)
+  khmer_500    Int? @default(0)
+  khmer_1K     Int? @default(0)
+  khmer_2K     Int? @default(0)
+  khmer_5K     Int? @default(0)
+  khmer_10K    Int? @default(0)
+  khmer_15K    Int? @default(0)
+  khmer_20K    Int? @default(0)
+  khmer_30K    Int? @default(0)
+  khmer_50K    Int? @default(0)
+  khmer_100K   Int? @default(0)
+  khmer_200K   Int? @default(0)
+  us_1         Int? @default(0)
+  us_5         Int? @default(0)
+  us_10        Int? @default(0)
+  us_20        Int? @default(0)
+  us_50        Int? @default(0)
+  us_100       Int? @default(0)
+  created_at    DateTime @default(now())
+
+  open   OpenShift?
+  close   CloseShift?
+}

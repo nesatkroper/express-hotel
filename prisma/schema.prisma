@@ -10,8 +10,9 @@ datasource db {
 }
 
 enum AccountStatus {
-  available
-  unavailable
+  active
+  dormant
+  suspended
 }
 
 enum EmployeeStatus {
@@ -56,6 +57,7 @@ model Auth {
   email        String   @unique
   password     String
   role_id      Int?
+  status      AccountStatus     @default(active)
   employee_id  Int?     @unique
   customer_id  Int?     @unique
   created_at   DateTime @default(now())
@@ -130,7 +132,7 @@ model Position {
 
 model Customer {
   customer_id    Int      @id @default(autoincrement())
-  account_status AccountStatus @default(available)
+  account_status AccountStatus @default(active)
   first_name     String
   last_name      String
   picture        String?

@@ -33,16 +33,20 @@ const upload = multer({
 
 const {
   select,
+  selectSale,
+  selectReserve,
   selectID,
   create,
   update,
   destroy,
 } = require("@/controllers/customer-controller");
 
-router.get("/", select);
-router.get("/:id", selectID);
-router.post("/", upload.single("picture"), create);
-router.put("/:id", upload.single("picture"), update);
-router.delete("/:id", destroy);
+router.get("/", authenticateJWT, select);
+router.get("/sale", authenticateJWT, selectSale);
+router.get("/reserve", authenticateJWT, selectReserve);
+router.get("/:id", authenticateJWT, selectID);
+router.post("/", upload.single("picture"), authenticateJWT, create);
+router.put("/:id", upload.single("picture"), authenticateJWT, update);
+router.delete("/:id", authenticateJWT, destroy);
 
 module.exports = router;

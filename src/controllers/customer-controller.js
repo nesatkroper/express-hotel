@@ -6,7 +6,36 @@ const select = async (req, res) => {
   try {
     const select = await prisma.customer.findMany({
       include: {
+        auth: true,
         reservedetails: true,
+        sales: true,
+      },
+    });
+    if (!select.length) return res.status(400).json({ msg: "no data" });
+    return res.status(200).json(select);
+  } catch (err) {
+    return res.status(500).json({ error: `Error :${err}` });
+  }
+};
+
+const selectReserve = async (req, res) => {
+  try {
+    const select = await prisma.customer.findMany({
+      include: {
+        reservedetails: true,
+      },
+    });
+    if (!select.length) return res.status(400).json({ msg: "no data" });
+    return res.status(200).json(select);
+  } catch (err) {
+    return res.status(500).json({ error: `Error :${err}` });
+  }
+};
+
+const selectSale = async (req, res) => {
+  try {
+    const select = await prisma.customer.findMany({
+      include: {
         sales: true,
       },
     });
@@ -23,6 +52,7 @@ const selectID = async (req, res) => {
     const selectID = await prisma.customer.findUnique({
       where: { customer_id: parseInt(id) },
       include: {
+        auth: true,
         reservedetails: true,
         sales: true,
       },
@@ -176,4 +206,12 @@ const destroy = async (req, res) => {
   }
 };
 
-module.exports = { select, selectID, create, update, destroy };
+module.exports = {
+  select,
+  selectID,
+  selectReserve,
+  selectSale,
+  create,
+  update,
+  destroy,
+};

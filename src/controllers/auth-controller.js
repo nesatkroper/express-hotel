@@ -84,6 +84,14 @@ const login = async (req, res) => {
     //  ! check if auth found
     if (!auth) return res.status(404).json({ error: "auth not found" });
 
+    if (auth.status != "active")
+      return res
+        .status(400)
+        .json({
+          error: "account has been blocked!",
+          msg: "please contact to admin to reactive.",
+        });
+
     // ! Check if auth credentials
     const isMatch = await bcrypt.compare(password, auth.password);
     if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
@@ -108,24 +116,23 @@ const logout = (req, res) => {
   try {
     res.clearCookie("token");
 
-    res.status(200).json({ message: "Logged out successfully." });
+    return res.status(200).json({ message: "Logged out successfully." });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Logout failed." });
+    return res.status(500).json({ error: "Logout failed." });
   }
 };
 
 // ! Get all Users (Admin-only route)
 const getAllAuth = async (req, res) => {
-  console.log(req.auth);
   try {
     const auths = await prismaClient.auth.findMany({
       include: { role: true, employee: true, customer: true },
     });
-    res.json(auths);
+    return res.json(auths);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to fetch auths" });
+    return res.status(500).json({ error: "Failed to fetch auths" });
   }
 };
 
@@ -139,10 +146,10 @@ const getAuth = async (req, res) => {
 
     if (!auth) return res.status(404).json({ error: "auth not found" });
 
-    res.json(auth);
+    return res.json(auth);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to fetch auth" });
+    return res.status(500).json({ error: "Failed to fetch auth" });
   }
 };
 

@@ -51,8 +51,91 @@ router.use("/sale-detail", saleDetailRouter);
 router.use("/sale", saleRouter);
 router.use("/khqr", KHQRRouter);
 
+const fetch = require("node-fetch");
+
+router.get("/tele", async (req, res) => {
+  const { msg } = req.query;
+  const token = process.env.TOKEN;
+  const channel = process.env.CHANNEL;
+
+  if (!msg) {
+    return res
+      .status(400)
+      .json({ success: false, error: "Message is required" });
+  }
+
+  const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${channel}&text=${encodeURIComponent(
+    msg
+  )}`;
+
+  try {
+    const response = await fetch(url);
+    const result = await response.json();
+
+    if (response.ok) {
+      res.status(200).json({ success: true, telegramResponse: result });
+    } else {
+      res.status(400).json({ success: false, error: result });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
 router.get("/rl", (req, res) => {
   res.json(expressListEndpoints(router));
 });
 
 module.exports = router;
+
+// const express = require("express");
+// const fetch = require("node-fetch");
+// const router = express.Router();
+
+// const MAX_RETRIES = 3;
+// const RETRY_DELAY = 1000; // 1 second between retries
+
+// const sendTelegramMessage = async (url, retries = 0) => {
+//   try {
+//     const response = await fetch(url);
+//     const result = await response.json();
+
+//     if (response.ok) {
+//       return { success: true, result };
+//     } else {
+//       throw new Error(result.description || "Failed to send message");
+//     }
+//   } catch (error) {
+//     if (retries < MAX_RETRIES) {
+//       console.log(`Retrying... Attempt ${retries + 1}`);
+//       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+//       return sendTelegramMessage(url, retries + 1);
+//     } else {
+//       return { success: false, error: error.message };
+//     }
+//   }
+// };
+
+// router.post("/tele", async (req, res) => {
+//   const { msg } = req.body;
+//   if (!msg) {
+//     return res.status(400).json({ error: "Message (msg) is required" });
+//   }
+
+//   const token = process.env.TOKEN;
+//   const channel = process.env.CHANNEL;
+//   const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${channel}&text=${encodeURIComponent(
+//     msg
+//   )}`;
+
+//   const result = await sendTelegramMessage(url);
+
+//   if (result.success) {
+//     res.status(200).json({ success: true, telegramResponse: result.result });
+//   } else {
+//     res.status(500).json({ success: false, error: result.error });
+//   }
+// });
+
+// module.exports = router;

@@ -1,5 +1,6 @@
 const express = require("express");
 const expressListEndpoints = require("express-list-endpoints");
+const router = express.Router();
 
 // ! import router
 const gmailOtpRouter = require("@/router/components/gmail-otp-router");
@@ -23,8 +24,7 @@ const roomPictureRouter = require("@/router/components/room-picture-router");
 const roomRouter = require("@/router/components/room-router");
 const saleRouter = require("@/router/components/sale-router");
 const saleDetailRouter = require("@/router/components/sale-detail-router");
-
-const router = express.Router();
+const KHQRRouter = require("@/router/components/khqr-router");
 
 //  ! router
 router.use("/uploads", express.static("uploads"));
@@ -49,6 +49,7 @@ router.use("/room", roomRouter);
 router.use("/room-picture", roomPictureRouter);
 router.use("/sale-detail", saleDetailRouter);
 router.use("/sale", saleRouter);
+router.use("/khqr", KHQRRouter);
 
 router.get("/rl", (req, res) => {
   res.json(expressListEndpoints(router));

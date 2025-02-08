@@ -14,7 +14,7 @@ const generateToken = (auth) => {
 };
 
 const register = async (req, res) => {
-  const { email, password, role } = req.body;
+  const { email, password, role, employee_id } = req.body;
   try {
     //! Role check
     if (typeof role !== "string")
@@ -44,6 +44,7 @@ const register = async (req, res) => {
         email,
         password: hashedPass,
         role_id: authRole.role_id,
+        employee_id: parseInt(employee_id, 10),
       },
       include: { role: true },
     });
@@ -85,12 +86,10 @@ const login = async (req, res) => {
     if (!auth) return res.status(404).json({ error: "auth not found" });
 
     if (auth.status != "active")
-      return res
-        .status(400)
-        .json({
-          error: "account has been blocked!",
-          msg: "please contact to admin to reactive.",
-        });
+      return res.status(400).json({
+        error: "account has been blocked!",
+        msg: "please contact to admin to reactive.",
+      });
 
     // ! Check if auth credentials
     const isMatch = await bcrypt.compare(password, auth.password);

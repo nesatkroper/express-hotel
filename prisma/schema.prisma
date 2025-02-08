@@ -67,6 +67,15 @@ model Auth {
   customer  Customer? @relation(fields: [customer_id], references: [customer_id])
 }
 
+model Attendace {
+  attendace_id Int @id @default(autoincrement())
+  employee_id Int
+  datetime DateTime @default(now())
+  note String
+
+  employee Employee @relation(fields: [employee_id], references: [employee_id])
+}
+
 model Employee {
   employee_id    Int      @id @default(autoincrement())
   employee_code  String?  @unique
@@ -90,6 +99,7 @@ model Employee {
   sales    Sale[]
   opens   OpenShift[]
   closes   CloseShift[]
+  attendaces Attendace[]
 }
 
 model EmployeeInfo  {

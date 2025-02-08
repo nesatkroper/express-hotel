@@ -1,5 +1,4 @@
-const dotenv = require("dotenv");
-dotenv.config();
+require("dotenv").config();
 require("module-alias/register");
 
 const express = require("express");
@@ -10,7 +9,11 @@ const path = require("path");
 const http = require("http");
 const rateLimit = require("express-rate-limit");
 const compression = require("compression");
+const prisma = require("@/provider/client");
 const { Server } = require("socket.io");
+const {
+  setupSocket,
+} = require("@/controllers/realtime/setup-socket-controller");
 
 const app = express();
 const server = http.createServer(app);
@@ -25,9 +28,15 @@ const limiter = rateLimit({
 app.use(limiter);
 app.use(compression());
 app.use(bodyParser.json());
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+    return res.status(400).json({ error: "Invalid JSON payload" });
+  }
+  next();
+});
 
 app.use(cors());
-// app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
@@ -36,19 +45,7 @@ app.use("/api", router);
 const io = new Server(server, {
   cors: { origin: "http://localhost:5173" },
 });
-
-io.on("connection", (socket) => {
-  console.log(`User connected: ${socket.id}`);
-
-  socket.on("sendMessage", (message) => {
-    console.log("Received message:", message);
-    io.emit("receiveMessage", message); // Broadcast message to all clients
-  });
-
-  socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`);
-  });
-});
+setupSocket(io, prisma);
 
 const PORT = process.env.PORT || 5555;
 server.listen(PORT, () => {

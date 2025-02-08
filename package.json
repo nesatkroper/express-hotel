@@ -6,10 +6,11 @@
   "scripts": {
     "test": "jest",
     "dev": "nodemon index.js",
-    "migrate": "npx prisma migrate dev --name add-status-field-to-auth",
+    "migrate": "npx prisma migrate dev --name add-attendance",
     "dbpush": "npx prisma db push",
     "generate": "npx prisma generate",
-    "seed": "npx prisma db seed"
+    "seed": "npx prisma db seed",
+    "git": "git add . && git commit -m \"change dir structure, setup telegram service and setup socket\" &&   git push"
   },
   "prisma": {
     "seed": "node prisma/seed.js"

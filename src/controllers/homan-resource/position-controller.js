@@ -2,7 +2,7 @@ const prisma = require("@/provider/client");
 
 const select = async (req, res) => {
   const { id } = req.params;
-  const { order = "desc", dep = true, emp = true } = req.query;
+  const { order = "desc", dep = false, emp = false } = req.query;
 
   try {
     let result;
@@ -32,7 +32,7 @@ const create = async (req, res) => {
 
     const code = `POS-${position_code.toString().padStart(3, "0")}`;
 
-    const newPosition = await prisma.position.create({
+    const create = await prisma.position.create({
       data: {
         department_id: parseInt(department_id, 10),
         position_name,
@@ -41,8 +41,8 @@ const create = async (req, res) => {
       },
     });
 
-    console.log(newPosition);
-    return res.status(200).json(newPosition);
+    console.log(create);
+    return res.status(200).json(create);
   } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }

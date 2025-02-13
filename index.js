@@ -3,13 +3,12 @@ require("module-alias/register");
 
 const express = require("express");
 const cors = require("cors");
-const bodyParser = require("body-parser");
 const router = require("@router/router.js");
 const path = require("path");
 const http = require("http");
 const rateLimit = require("express-rate-limit");
-const compression = require("compression");
 const prisma = require("@/provider/client");
+const bodyParser = require("body-parser");
 const { Server } = require("socket.io");
 const {
   setupSocket,
@@ -20,14 +19,14 @@ const server = http.createServer(app);
 
 const limiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 55,
+  max: 100,
   message: "Too many requests from this IP, please try again after a minute.",
   keyGenerator: (req) => req.ip,
 });
 
 app.use(limiter);
-app.use(compression());
 app.use(bodyParser.json());
+
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
     return res.status(400).json({ error: "Invalid JSON payload" });
@@ -35,11 +34,14 @@ app.use((err, req, res, next) => {
   next();
 });
 
-app.use(cors());
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Something went wrong!" });
+});
+
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
-
 app.use("/api", router);
 
 const io = new Server(server, {

@@ -1,4 +1,4 @@
-// socketController.js
+const { create } = require("@/controllers/message/group-message-controller");
 
 const setupSocket = (io, db) => {
   io.on("connection", (socket) => {
@@ -15,6 +15,15 @@ const setupSocket = (io, db) => {
       // } catch (error) {
       //   console.error("Error saving message:", error);
       // }
+    });
+    socket.on("sendGroup", async (message) => {
+      io.emit("receiveGroup", message);
+
+      try {
+        await create(message);
+      } catch (error) {
+        console.error("Error saving message:", error);
+      }
     });
 
     socket.on("disconnect", () => {

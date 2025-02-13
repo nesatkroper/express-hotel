@@ -2,6 +2,7 @@
 const bankNoteRouter = require("@/router/components/finance/banknote-router");
 const closeRouter = require("@/router/components/finance/close-router");
 const KHQRRouter = require("@/router/components/finance/khqr-router");
+const paymentRouter = require("@/router/components/finance/payment-router");
 const openRouter = require("@/router/components/finance/open-router");
 
 //! human-resource
@@ -21,6 +22,7 @@ const categoryRouter = require("@/router/components/product/category-router");
 const productRouter = require("@/router/components/product/product-router");
 const stockRouter = require("@/router/components/product/stock-router");
 const supplierRouter = require("@/router/components/product/supplier-router");
+const cartRouter = require("@/router/components/product/cart-router");
 
 //! reservation
 const reserveDetailsRouter = require("@/router/components/reservation/reservation-details-router");
@@ -35,6 +37,9 @@ const saleRouter = require("@/router/components/sale/sale-router");
 //!
 const gmailOtpRouter = require("@/router/components/gmail-otp-router");
 
+// ! message
+const groupMessageRouter = require("@/router/components/message/group-message-router");
+
 module.exports = {
   gmailOtpRouter,
   authRouter,
@@ -43,6 +48,7 @@ module.exports = {
   departmentRouter,
   categoryRouter,
   bankNoteRouter,
+  paymentRouter,
   employeeRouter,
   customerRouter,
   closeRouter,
@@ -50,6 +56,7 @@ module.exports = {
   productRouter,
   supplierRouter,
   stockRouter,
+  cartRouter,
   reservationRouter,
   reserveDetailsRouter,
   roomPictureRouter,
@@ -59,4 +66,5 @@ module.exports = {
   KHQRRouter,
   telegramNotificationRouter,
   telegramAttendanceRouter,
+  groupMessageRouter,
 };

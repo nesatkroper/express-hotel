@@ -1,4 +1,4 @@
-const fetch = require("node-fetch");
+const axios = require("axios");
 
 const sendNotification = async (req, res) => {
   const {
@@ -9,7 +9,7 @@ const sendNotification = async (req, res) => {
     address,
     payment_status,
   } = req.body;
-  const token = process.env.TOKEN;
+  const token = process.env.BOT2_TOKEN;
   const channel = process.env.CHANNEL_NOTIFICATION;
 
   if (
@@ -47,21 +47,21 @@ ${productDetails}
 📅 *Order Date:* ${new Date().toLocaleString()}
 `;
 
-  const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${channel}&text=${encodeURIComponent(
-    message
-  )}&parse_mode=Markdown`;
+  const url = `https://api.telegram.org/bot${token}/sendMessage`;
 
   try {
-    const response = await fetch(url);
-    const result = await response.json();
+    const response = await axios.post(url, {
+      chat_id: channel,
+      text: message,
+      parse_mode: "Markdown",
+    });
 
-    if (response.ok) {
-      res.status(200).json({ success: true, telegramResponse: result });
-    } else {
-      res.status(400).json({ success: false, error: result });
-    }
+    res.status(200).json({ success: true, telegramResponse: response.data });
   } catch (error) {
-    console.error("Error sending order notification:", error);
+    console.error(
+      "Error sending order notification:",
+      error.response?.data || error.message
+    );
     res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 };

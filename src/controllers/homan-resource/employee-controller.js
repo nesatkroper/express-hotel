@@ -2,91 +2,55 @@ const prisma = require("@/provider/client");
 
 const select = async (req, res) => {
   const { id } = req.params;
-  console.log(id);
-  const include = {
-    position: true,
-    department: true,
-    reservedetails: true,
-    sales: true,
-    opens: true,
-    closes: true,
-    info: true,
-  };
+  const {
+    order = "desc",
+    position = false,
+    department = false,
+    reservedetails = false,
+    sales = false,
+    opens = false,
+    closes = false,
+    info = false,
+  } = req.query;
 
   try {
-    let result;
-    if (!id) {
-      result = await prisma.employee.findMany({ include });
-    } else {
-      result = await prisma.employee.findUnique({
-        where: { employee_id: parseInt(id) },
-        include,
-      });
-    }
+    let select;
 
-    if (!result || (Array.isArray(result) && !result.length)) {
+    if (!id)
+      select = await prisma.employee.findMany({
+        include: {
+          position: JSON.parse(position),
+          department: JSON.parse(department),
+          reservedetails: JSON.parse(reservedetails),
+          sales: JSON.parse(sales),
+          opens: JSON.parse(opens),
+          closes: JSON.parse(closes),
+          info: JSON.parse(info),
+        },
+        orderBy: { created_at: order },
+      });
+    else
+      select = await prisma.employee.findUnique({
+        where: { employee_id: parseInt(id) },
+        include: {
+          position: JSON.parse(position),
+          department: JSON.parse(department),
+          reservedetails: JSON.parse(reservedetails),
+          sales: JSON.parse(sales),
+          opens: JSON.parse(opens),
+          closes: JSON.parse(closes),
+          info: JSON.parse(info),
+        },
+      });
+
+    if (!select || (Array.isArray(select) && !select.length)) {
       return res.status(404).json({ msg: "No data found" });
     }
 
-    return res.status(200).json(result);
+    return res.status(200).json(select);
   } catch (err) {
     console.error("Error:", err);
     return res.status(500).json({ error: `Error: ${err.message}` });
-  }
-};
-
-// const select = async (req, res) => {
-//   const { id } = req.params;
-
-//   const include = {
-//     position: true,
-//     department: true,
-//     reservedetails: true,
-//     sales: true,
-//     opens: true,
-//     closes: true,
-//     info: true,
-//   };
-
-//   try {
-//     if (!id) {
-//       const select = await prisma.employee.findMany({
-//         include: include,
-//       });
-//       if (!select.length) return res.status(400).json({ msg: "no data" });
-//       return res.status(200).json(select);
-//     } else {
-//       const selectID = await prisma.employee.findUnique({
-//         where: { employee_id: parseInt(id) },
-//         include: include,
-//       });
-//       if (!selectID) return res.status(400).json({ msg: "no data" });
-//       return res.status(200).json(selectID);
-//     }
-//   } catch (err) {
-//     return res.status(500).json({ error: `Error :${err}` });
-//   }
-// };
-
-const selectID = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const selectID = await prisma.employee.findUnique({
-      where: { employee_id: parseInt(id) },
-      include: {
-        position: true,
-        department: true,
-        reservedetails: true,
-        sales: true,
-        opens: true,
-        closes: true,
-        info: true,
-      },
-    });
-    if (!selectID) return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(selectID);
-  } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
   }
 };
 
@@ -106,6 +70,10 @@ const create = async (req, res) => {
       hired_date,
     } = req.body;
 
+    if (!employee_code) {
+      return res.status(400).json({ error: "employee_code is required" });
+    }
+
     const code = `EMP-${employee_code.toString().padStart(4, "0")}`;
     const cleanphone = phone.startsWith("0") ? phone.slice(1) : phone;
 
@@ -116,12 +84,12 @@ const create = async (req, res) => {
         first_name,
         last_name,
         gender,
-        dob: new Date(dob),
-        phone: `+855${cleanphone}`,
-        position_id: parseInt(position_id, 10),
-        department_id: parseInt(department_id, 10),
-        salary,
-        hired_date: new Date(hired_date),
+        dob: dob ? new Date(dob) : null,
+        phone: cleanphone ? `+855${cleanphone}` : null,
+        position_id: position_id ? parseInt(position_id, 10) : null,
+        department_id: department_id ? parseInt(department_id, 10) : null,
+        salary: salary ? parseFloat(salary) : null,
+        hired_date: hired_date ? new Date(hired_date) : null,
       },
     });
 
@@ -161,7 +129,7 @@ const update = async (req, res) => {
         phone,
         position_id: parseInt(position_id, 10),
         department_id: parseInt(department_id, 10),
-        salary,
+        salary: parseFloat(salary),
         hired_date: new Date(hired_date),
       },
     });
@@ -196,7 +164,6 @@ const destroy = async (req, res) => {
 
 module.exports = {
   select,
-  selectID,
   create,
   update,
   destroy,

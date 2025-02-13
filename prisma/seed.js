@@ -53,7 +53,7 @@ const main = async () => {
     data: {
       email: "admin@nun.com",
       password: await bcrypt.hash("123456", 10),
-      role_id: adminRole.role_id, // ✅ Correct role reference
+      role_id: adminRole.role_id,
     },
   });
 

@@ -11,6 +11,7 @@ const {
   departmentRouter,
   categoryRouter,
   bankNoteRouter,
+  paymentRouter,
   employeeRouter,
   customerRouter,
   closeRouter,
@@ -18,6 +19,7 @@ const {
   productRouter,
   supplierRouter,
   stockRouter,
+  cartRouter,
   reservationRouter,
   reserveDetailsRouter,
   roomPictureRouter,
@@ -27,22 +29,24 @@ const {
   KHQRRouter,
   telegramNotificationRouter,
   telegramAttendanceRouter,
+  groupMessageRouter,
 } = require("@/router/export-router");
 
 //  ! router
 router.use("/", authRouter);
-router.use("/uploads", express.static("uploads"));
 router.use("/mail", gmailOtpRouter);
 router.use("/auth", userRouter);
 router.use("/position", positionRouter);
 router.use("/department", departmentRouter);
 router.use("/category", categoryRouter);
 router.use("/banknote", bankNoteRouter);
+router.use("/payment", paymentRouter);
 router.use("/employee", employeeRouter);
 router.use("/customer", customerRouter);
 router.use("/close", closeRouter);
 router.use("/open", openRouter);
 router.use("/product", productRouter);
+router.use("/cart", cartRouter);
 router.use("/supplier", supplierRouter);
 router.use("/stock", stockRouter);
 router.use("/reservation", reservationRouter);
@@ -54,6 +58,10 @@ router.use("/sale", saleRouter);
 router.use("/khqr", KHQRRouter);
 router.use("/tele-noti", telegramNotificationRouter);
 router.use("/tele-att", telegramAttendanceRouter);
+router.use("/message", groupMessageRouter);
+
+const image = require("@/router/components/image-router");
+router.use("/images", image);
 
 router.get("/rl", (req, res) => {
   res.json(expressListEndpoints(router));

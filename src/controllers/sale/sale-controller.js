@@ -7,10 +7,11 @@ const select = async (req, res) => {
         room: true,
         employee: true,
         customer: true,
-        saleDetaildetails: true,
+        saledetails: true,
       },
     });
-    if (!select.length) return res.status(400).json({ msg: "no data" });
+    if (!select || (Array.isArray(select) && !select.length))
+      return res.status(400).json({ msg: "no data" });
     return res.status(200).json(select);
   } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });

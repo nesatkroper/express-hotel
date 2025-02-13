@@ -1,26 +1,30 @@
 const prisma = require("@/provider/client");
 
 const select = async (req, res) => {
-  try {
-    const select = await prisma.openShift.findMany({
-      include: { banknote: true, employee: true },
-    });
-    if (!select.length) return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(select);
-  } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
-  }
-};
-
-const selectID = async (req, res) => {
   const { id } = req.params;
+  const { banknote = false, employee = true } = req.query;
   try {
-    const selectID = await prisma.openShift.findUnique({
-      where: { open_shift_id: parseInt(id) },
-      include: { banknote: true, employee: true },
-    });
-    if (!selectID) return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(selectID);
+    let select;
+
+    if (!id)
+      select = await prisma.openShift.findMany({
+        include: {
+          banknote: banknote === "true",
+          employee: employee === "true",
+        },
+      });
+    else
+      select = await prisma.openShift.findUnique({
+        where: { open_shift_id: parseInt(id) },
+        include: {
+          banknote: banknote === "true",
+          employee: employee === "true",
+        },
+      });
+
+    if (!select || (Array.isArray(select) && !select.length))
+      return res.status(400).json({ msg: "no data" });
+    return res.status(200).json(select);
   } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }
@@ -98,4 +102,4 @@ const destroy = async (req, res) => {
   }
 };
 
-module.exports = { select, selectID, create, update, destroy };
+module.exports = { select, create, update, destroy };

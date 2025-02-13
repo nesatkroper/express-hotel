@@ -3,14 +3,12 @@ const router = express.Router();
 
 const {
   select,
-  selectID,
   create,
   update,
   destroy,
 } = require("@/controllers/homan-resource/department-controller");
 
-router.get("/", select);
-router.get("/:id", selectID);
+router.get("/:id?", select);
 router.post("/", create);
 router.put("/:id", update);
 router.delete("/:id", destroy);

@@ -1,11 +1,13 @@
 const { BakongKHQR, khqrData, IndividualInfo } = require("bakong-khqr");
 
 const RequestQR = (req, res) => {
-  const { account, name, city, amount } = req.body;
+  const { account, name, city, amount, currency } = req.body;
+
+  const currencyValue = currency === "usd" ? "usd" : "khr";
 
   try {
     const optionalData = {
-      currency: khqrData.currency.khr,
+      currency: khqrData.currency[currencyValue],
       amount: amount,
     };
 

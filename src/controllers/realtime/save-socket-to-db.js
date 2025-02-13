@@ -1,19 +1,33 @@
-const prisma = require("@prisma/client");
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
 
-const saveToDB = async (message) => {
+const saveMessageToDB = async (message) => {
+  const [fname, lname] = message.sender.split(" ");
+  let emp_id = null;
+
   try {
-    const newMessage = await prisma.message.create({
-      data: {
-        content: message.content,
-        sender: message.sender,
-        timestamp: new Date(),
+    const emp = await prisma.employee.findFirst({
+      where: {
+        first_name: fname,
+        last_name: lname,
       },
     });
-    console.log("Message saved to DB:", newMessage);
+
+    if (emp) emp_id = emp.employee_id;
+
+    const newChat = await prisma.groupMessage.create({
+      data: {
+        employee_id: emp_id,
+        content: message.content,
+        time: message.time,
+      },
+    });
+
+    console.log("new chat: ", newChat);
   } catch (error) {
     console.error("Error saving message:", error);
     throw error;
   }
 };
 
-module.exports = { saveToDB };
+module.exports = { saveMessageToDB };

@@ -65,13 +65,14 @@ model Auth {
   role      Role?     @relation(fields: [role_id], references: [role_id])
   employee  Employee? @relation(fields: [employee_id], references: [employee_id])
   customer  Customer? @relation(fields: [customer_id], references: [customer_id])
+  cart   Cart[]
 }
 
 model Attendace {
   attendace_id Int @id @default(autoincrement())
   employee_id Int
   datetime DateTime @default(now())
-  note String
+  note String?
 
   employee Employee @relation(fields: [employee_id], references: [employee_id])
 }
@@ -100,6 +101,8 @@ model Employee {
   opens   OpenShift[]
   closes   CloseShift[]
   attendaces Attendace[]
+  groupchat   GroupMessage[]
+    payment  Payment[]
 }
 
 model EmployeeInfo  {
@@ -115,6 +118,7 @@ model EmployeeInfo  {
   note      String?
 
   employee Employee @relation(fields: [employee_id], references: [employee_id])
+
 }
 
 model Department {
@@ -190,6 +194,7 @@ model Reservation {
   is_hidden       Boolean @default(false)
 
   details ReservationDetail[]
+  payment   Payment[]
 }
 
 model Room {
@@ -243,6 +248,7 @@ model Product {
   category  ProductCategory? @relation(fields: [product_category_id], references: [product_category_id])
   stocks    ProductStock[]
   saledetails      SaleDetail[]
+  cart   Cart[]
 }
 
 model ProductCategory {
@@ -254,6 +260,17 @@ model ProductCategory {
   created_at           DateTime @default(now())
 
   products    Product[]
+}
+
+model Cart {
+  cart_id    Int   @id   @default(autoincrement())
+  auth_id   Int
+  product_id     Int   
+  quantity   Int 
+  created_at    DateTime    @default(now())
+
+  product   Product  @relation(fields: [product_id], references: [product_id])
+  auth   Auth  @relation(fields: [auth_id], references: [auth_id])
 }
 
 model ProductStock {
@@ -298,6 +315,7 @@ model Sale {
   employee    Employee      @relation(fields: [employee_id], references: [employee_id])
   customer    Customer?   @relation(fields: [customer_id], references: [customer_id])
   saledetails     SaleDetail[]
+  payment   Payment[]
 }
 
 model SaleDetail {
@@ -310,6 +328,25 @@ model SaleDetail {
 
   sale Sale @relation(fields: [sale_id], references: [sale_id])
   product    Product  @relation(fields: [product_id], references: [product_id])
+}
+
+model Payment {
+  payment_id    Int   @id     @default(autoincrement())
+  sale_id   Int?   
+  reservation_id   Int?
+  employee_id Int 
+  invoice   String?
+  hash  String
+  fromAccountId   String
+  toAccountId   String 
+  currency   String
+  amount    Decimal   @db.Decimal(12,2)
+  externalRef  String
+  created_at    DateTime  @default(now())
+
+  sale   Sale?    @relation(fields: [sale_id], references: [sale_id])
+  reservation    Reservation?    @relation(fields: [reservation_id], references: [reservation_id])
+  employee   Employee     @relation(fields: [employee_id], references: [employee_id])
 }
 
 model OpenShift {
@@ -340,7 +377,6 @@ model CloseShift {
   employee    Employee?   @relation(fields: [employee_id], references: [employee_id])
 }
 
-
 model BankNote {
   bank_note_id Int @id @default(autoincrement())
   khmer_100    Int? @default(0)
@@ -365,4 +401,24 @@ model BankNote {
 
   open   OpenShift?
   close   CloseShift?
+}
+
+
+
+model GroupMessage {
+  group_message_id     Int @id @default(autoincrement())
+  employee_id   Int? 
+  content  String
+  time  DateTime
+  created_at   DateTime   @default(now())
+
+  employee    Employee?   @relation(fields: [employee_id], references: [employee_id])
+}
+
+// ! test model
+model Image {
+  id        Int      @id @default(autoincrement())
+  title     String
+  imageUrl  String
+  createdAt DateTime @default(now())
 }

@@ -2,21 +2,21 @@ const prisma = require("@/provider/client");
 
 const select = async (req, res) => {
   const { id } = req.params;
-  const { open = true, close = true } = req.query;
+  const { open = false, close = false } = req.query;
   try {
     let select;
 
     if (!id)
       select = await prisma.bankNote.findMany({
-        include: { open: JSON.parse(open), close: JSON.parse(close) },
+        include: { open: open === "true", close: close === "true" },
       });
     else
       select = await prisma.bankNote.findUnique({
         where: { bank_note_id: parseInt(id) },
-        include: { open: JSON.parse(open), close: JSON.parse(close) },
+        include: { open: open === "true", close: close === "true" },
       });
 
-    if (!select || (!select && !select.length))
+    if (!select || (Array.isArray(select) && !select.length))
       return res.status(400).json({ msg: "no data" });
     return res.status(200).json(select);
   } catch (err) {

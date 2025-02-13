@@ -9,20 +9,20 @@ const select = async (req, res) => {
     if (!id)
       select = await prisma.closeShift.findMany({
         include: {
-          banknote: JSON.parse(banknote),
-          employee: JSON.parse(employee),
+          banknote: banknote === "true",
+          employee: employee === "true",
         },
       });
     else
       select = await prisma.closeShift.findUnique({
         where: { close_shift_id: parseInt(id) },
         include: {
-          banknote: JSON.parse(banknote),
-          employee: JSON.parse(employee),
+          banknote: banknote === "true",
+          employee: employee === "true",
         },
       });
 
-    if (!select || (!select && !select.length))
+    if (!select || (Array.isArray(select) && !select.length))
       return res.status(400).json({ msg: "no data" });
     return res.status(200).json(select);
   } catch (err) {

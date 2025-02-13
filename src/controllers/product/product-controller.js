@@ -3,34 +3,38 @@ const path = require("path");
 const fs = require("fs");
 
 const select = async (req, res) => {
-  try {
-    const select = await prisma.product.findMany({
-      include: {
-        category: true,
-        stocks: true,
-        saledetails: true,
-      },
-    });
-    if (!select.length) return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(select);
-  } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
-  }
-};
-
-const selectID = async (req, res) => {
   const { id } = req.params;
+  const {
+    order = "desc",
+    category = false,
+    stocks = false,
+    saledetails = false,
+  } = req.query;
+
   try {
-    const selectID = await prisma.product.findUnique({
-      where: { product_id: parseInt(id) },
-      include: {
-        category: true,
-        stocks: true,
-        saledetails: true,
-      },
-    });
-    if (!selectID) return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(selectID);
+    let select;
+
+    if (!id)
+      select = await prisma.product.findMany({
+        include: {
+          category: category === "true",
+          stocks: stocks === "true",
+          saledetails: saledetails === "true",
+        },
+        orderBy: { created_at: order },
+      });
+    else
+      select = await prisma.product.findUnique({
+        where: { product_id: parseInt(id) },
+        include: {
+          category: JSON.parse(category),
+          stocks: JSON.parse(stocks),
+          saledetails: JSON.parse(saledetails),
+        },
+      });
+    if (!select || (Array.isArray(select) && !select.length))
+      return res.status(400).json({ msg: "no data" });
+    return res.status(200).json(select);
   } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }
@@ -55,10 +59,10 @@ const create = async (req, res) => {
         picture,
         product_code: code,
         product_name,
-        product_category_id,
+        product_category_id: parseInt(product_category_id, 10),
         price,
-        discount_rate,
-        status,
+        discount_rate: parseInt(discount_rate, 10),
+        status: status === "true",
       },
     });
 
@@ -163,4 +167,4 @@ const destroy = async (req, res) => {
   }
 };
 
-module.exports = { select, selectID, create, update, destroy };
+module.exports = { select, create, update, destroy };

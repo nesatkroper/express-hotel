@@ -4,5 +4,5 @@ const {
   sendAttendance,
 } = require("@/controllers/notification/telegram-attendance-controller");
 
-router.get("/", sendAttendance);
+router.post("/", sendAttendance);
 module.exports = router;

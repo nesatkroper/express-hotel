@@ -6,11 +6,11 @@
   "scripts": {
     "test": "jest",
     "dev": "nodemon index.js",
-    "migrate": "npx prisma migrate dev --name modify-payment",
+    "migrate": "npx prisma migrate dev --name add-cardnote",
     "dbpush": "npx prisma db push",
     "generate": "npx prisma generate",
     "seed": "npx prisma db seed",
-    "git": "git add . && git commit -m \"complete 80% khqr\" &&   git push && npm run dev",
+    "git": "git add . && git commit -m \"my heart just dead a second\" &&   git push && npm run dev",
     "prisma": "npm run migrate && npm run generate && npm run dev"
   },
   "prisma": {

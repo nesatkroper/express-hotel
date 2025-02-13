@@ -7,14 +7,14 @@ const select = async (req, res) => {
 
     if (!auth_id)
       select = await prisma.cart.findMany({
-        include: { product: true },
+        include: { product: true, note: true },
       });
     else
       select = await prisma.cart.findMany({
         where: {
           auth_id: parseInt(auth_id, 10),
         },
-        include: { product: true },
+        include: { product: true, note: true },
       });
 
     if (!select || (Array.isArray(select) && !select.length))

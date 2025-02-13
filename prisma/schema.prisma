@@ -271,6 +271,15 @@ model Cart {
 
   product   Product  @relation(fields: [product_id], references: [product_id])
   auth   Auth  @relation(fields: [auth_id], references: [auth_id])
+  note  CartNote[]
+}
+
+model CartNote {
+  note_id   Int   @id    @default(autoincrement())
+  cart_id   Int
+  note   String
+
+  cart  Cart   @relation(fields: [cart_id], references: [cart_id])
 }
 
 model ProductStock {

@@ -6,18 +6,21 @@ const setupSocket = (io, db) => {
 
     socket.on("sendMessage", async (message) => {
       console.log("Received message:", message);
-
-      // ! wait to move to try if setup finish db
       io.emit("receiveMessage", message);
-
-      // try {
-      //   await saveMessageToDB(message);
-      // } catch (error) {
-      //   console.error("Error saving message:", error);
-      // }
     });
     socket.on("sendGroup", async (message) => {
       io.emit("receiveGroup", message);
+
+      try {
+        await create(message);
+      } catch (error) {
+        console.error("Error saving message:", error);
+      }
+    });
+
+    socket.on("sendNotification", async (message) => {
+      console.table(message.data);
+      io.emit("receiveNotification", message);
 
       try {
         await create(message);

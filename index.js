@@ -39,22 +39,48 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Something went wrong!" });
 });
 
-cors({
-  origin: (origin, callback) => {
-    const allowedOrigins = [
-      "https://react-hotel-two.vercel.app",
-      "https://nun.up.railway.app",
-      "http://localhost:5173",
-    ];
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true,
-});
+// cors({
+//   origin: (origin, callback) => {
+//     const allowedOrigins = [
+//       "https://react-hotel-two.vercel.app",
+//       "https://nun.up.railway.app",
+//       "http://localhost:5173",
+//     ];
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error("Not allowed by CORS"));
+//     }
+//   },
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+//   credentials: true,
+// });
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        "https://react-hotel-two.vercel.app",
+        "https://nun.up.railway.app",
+        "http://localhost:5173",
+      ];
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: [
+      "Origin",
+      "X-Requested-With",
+      "Content-Type",
+      "Accept",
+      "Authorization",
+    ],
+    credentials: true,
+  })
+);
 
 app.use((req, res, next) => {
   console.log(`CORS Request from: ${req.headers.origin}`);

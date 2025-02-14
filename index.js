@@ -43,6 +43,12 @@ app.use(
   cors({ origin: "https://react-hotel-two.vercel.app", credentials: true })
 );
 
+app.use(cors({
+  origin: 'https://react-hotel-two.vercel.app',  
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
+
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 app.use("/api", router);
 

@@ -46,6 +46,7 @@ app.use(
     origin: (origin, callback) => {
       const allowedOrigins = [
         "https://react-hotel-two.vercel.app",
+        "https://nun.up.railway.app",
         "http://localhost:5173",
       ];
 
@@ -68,6 +69,7 @@ const io = new Server(server, {
     origin: (origin, callback) => {
       const allowedOrigins = [
         "https://react-hotel-two.vercel.app",
+        "https://nun.up.railway.app",
         "http://localhost:5173",
       ];
 

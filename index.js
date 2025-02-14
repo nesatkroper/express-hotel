@@ -19,7 +19,7 @@ const server = http.createServer(app);
 
 const limiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 100,
+  max: 200,
   message: "Too many requests from this IP, please try again after a minute.",
   keyGenerator: (req) => req.ip,
 });
@@ -80,7 +80,7 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
     credentials: true,
   },
-  transports: ["websocket"],
+  transports: ["websocket", "polling"],
 });
 
 app.use((req, res, next) => {

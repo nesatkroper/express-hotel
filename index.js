@@ -43,7 +43,18 @@ app.use((err, req, res, next) => {
 
 app.use(
   cors({
-    origin: "https://react-hotel-two.vercel.app",
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        "https://react-hotel-two.vercel.app",
+        "http://localhost:5173",
+      ];
+
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -54,11 +65,22 @@ app.use("/api", router);
 
 const io = new Server(server, {
   cors: {
-    origin: "https://react-hotel-two.vercel.app",
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        "https://react-hotel-two.vercel.app",
+        "http://localhost:5173",
+      ];
+
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST"],
     credentials: true,
   },
-  transports: ["websocket"],
+  transports: ["websocket", "polling"],
 });
 
 app.use((req, res, next) => {
@@ -66,9 +88,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// const io = new Server(server, {
-//   cors: { origin: "https://react-hotel-two.vercel.app" },
-// });
 setupSocket(io, prisma);
 
 const PORT = process.env.PORT || 5555;

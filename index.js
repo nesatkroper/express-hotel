@@ -39,8 +39,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Something went wrong!" });
 });
 
-// app.use(cors());
-
 cors({
   origin: (origin, callback) => {
     const allowedOrigins = [
@@ -86,15 +84,6 @@ const io = new Server(server, {
     credentials: true,
   },
   transports: ["websocket", "polling"],
-});
-
-io.use((socket, next) => {
-  const token = socket.handshake.auth.token;
-  if (validateToken(token)) {
-    next();
-  } else {
-    next(new Error("Authentication error"));
-  }
 });
 
 app.use((req, res, next) => {

@@ -18,9 +18,9 @@ const app = express();
 const server = http.createServer(app);
 
 const limiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 200,
-  message: "Too many requests from this IP, please try again after a minute.",
+  windowMs: 60 * 1000, // 1 minute
+  max: 500, // Increase to 500 for testing
+  message: "Too many requests from this IP, please try again later.",
   keyGenerator: (req) => req.ip,
 });
 
@@ -41,25 +41,28 @@ app.use((err, req, res, next) => {
 
 // app.use(cors());
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      const allowedOrigins = [
-        "https://react-hotel-two.vercel.app",
-        "https://nun.up.railway.app",
-        "http://localhost:5173",
-      ];
+cors({
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      "https://react-hotel-two.vercel.app",
+      "https://nun.up.railway.app",
+      "http://localhost:5173",
+    ];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
+});
 
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST"],
-    credentials: true,
-  })
-);
+app.use((req, res, next) => {
+  console.log(`CORS Request from: ${req.headers.origin}`);
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
+  next();
+});
 
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 app.use("/api", router);
@@ -79,10 +82,19 @@ const io = new Server(server, {
         callback(new Error("Not allowed by CORS"));
       }
     },
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST"],
     credentials: true,
   },
   transports: ["websocket", "polling"],
+});
+
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (validateToken(token)) {
+    next();
+  } else {
+    next(new Error("Authentication error"));
+  }
 });
 
 app.use((req, res, next) => {

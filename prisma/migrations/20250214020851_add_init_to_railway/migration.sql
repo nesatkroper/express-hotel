@@ -221,6 +221,26 @@ CREATE TABLE "ProductCategory" (
 );
 
 -- CreateTable
+CREATE TABLE "Cart" (
+    "cart_id" SERIAL NOT NULL,
+    "auth_id" INTEGER NOT NULL,
+    "product_id" INTEGER NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Cart_pkey" PRIMARY KEY ("cart_id")
+);
+
+-- CreateTable
+CREATE TABLE "CartNote" (
+    "note_id" SERIAL NOT NULL,
+    "cart_id" INTEGER NOT NULL,
+    "note" TEXT NOT NULL,
+
+    CONSTRAINT "CartNote_pkey" PRIMARY KEY ("note_id")
+);
+
+-- CreateTable
 CREATE TABLE "ProductStock" (
     "product_stock_id" SERIAL NOT NULL,
     "product_id" INTEGER,
@@ -276,6 +296,24 @@ CREATE TABLE "SaleDetail" (
 );
 
 -- CreateTable
+CREATE TABLE "Payment" (
+    "payment_id" SERIAL NOT NULL,
+    "sale_id" INTEGER,
+    "reservation_id" INTEGER,
+    "employee_id" INTEGER NOT NULL,
+    "invoice" TEXT,
+    "hash" TEXT NOT NULL,
+    "fromAccountId" TEXT NOT NULL,
+    "toAccountId" TEXT NOT NULL,
+    "currency" TEXT NOT NULL,
+    "amount" DECIMAL(12,2) NOT NULL,
+    "externalRef" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Payment_pkey" PRIMARY KEY ("payment_id")
+);
+
+-- CreateTable
 CREATE TABLE "OpenShift" (
     "open_shift_id" SERIAL NOT NULL,
     "employee_id" INTEGER,
@@ -327,6 +365,27 @@ CREATE TABLE "BankNote" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "BankNote_pkey" PRIMARY KEY ("bank_note_id")
+);
+
+-- CreateTable
+CREATE TABLE "GroupMessage" (
+    "group_message_id" SERIAL NOT NULL,
+    "employee_id" INTEGER,
+    "content" TEXT NOT NULL,
+    "time" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "GroupMessage_pkey" PRIMARY KEY ("group_message_id")
+);
+
+-- CreateTable
+CREATE TABLE "Image" (
+    "id" SERIAL NOT NULL,
+    "title" TEXT NOT NULL,
+    "imageUrl" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Image_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -414,6 +473,15 @@ ALTER TABLE "RoomPicture" ADD CONSTRAINT "RoomPicture_room_id_fkey" FOREIGN KEY 
 ALTER TABLE "Product" ADD CONSTRAINT "Product_product_category_id_fkey" FOREIGN KEY ("product_category_id") REFERENCES "ProductCategory"("product_category_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Cart" ADD CONSTRAINT "Cart_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("product_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Cart" ADD CONSTRAINT "Cart_auth_id_fkey" FOREIGN KEY ("auth_id") REFERENCES "Auth"("auth_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CartNote" ADD CONSTRAINT "CartNote_cart_id_fkey" FOREIGN KEY ("cart_id") REFERENCES "Cart"("cart_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "ProductStock" ADD CONSTRAINT "ProductStock_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("product_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -435,6 +503,15 @@ ALTER TABLE "SaleDetail" ADD CONSTRAINT "SaleDetail_sale_id_fkey" FOREIGN KEY ("
 ALTER TABLE "SaleDetail" ADD CONSTRAINT "SaleDetail_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("product_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_sale_id_fkey" FOREIGN KEY ("sale_id") REFERENCES "Sale"("sale_id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_reservation_id_fkey" FOREIGN KEY ("reservation_id") REFERENCES "Reservation"("reservation_id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_employee_id_fkey" FOREIGN KEY ("employee_id") REFERENCES "Employee"("employee_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "OpenShift" ADD CONSTRAINT "OpenShift_bank_note_id_fkey" FOREIGN KEY ("bank_note_id") REFERENCES "BankNote"("bank_note_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -445,3 +522,6 @@ ALTER TABLE "CloseShift" ADD CONSTRAINT "CloseShift_bank_note_id_fkey" FOREIGN K
 
 -- AddForeignKey
 ALTER TABLE "CloseShift" ADD CONSTRAINT "CloseShift_employee_id_fkey" FOREIGN KEY ("employee_id") REFERENCES "Employee"("employee_id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "GroupMessage" ADD CONSTRAINT "GroupMessage_employee_id_fkey" FOREIGN KEY ("employee_id") REFERENCES "Employee"("employee_id") ON DELETE SET NULL ON UPDATE CASCADE;

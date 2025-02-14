@@ -6,11 +6,11 @@
   "scripts": {
     "test": "jest",
     "dev": "nodemon index.js",
-    "migrate": "npx prisma migrate dev --name add-cardnote",
+    "migrate": "npx prisma migrate dev --name add-init-to-railway",
     "dbpush": "npx prisma db push",
     "generate": "npx prisma generate",
     "seed": "npx prisma db seed",
-    "git": "git add . && git commit -m \"fix chat sound\" &&   git push && npm run dev",
+    "git": "git add . && git commit -m \"config for hosting\" &&   git push && npm run dev",
     "prisma": "npm run migrate && npm run generate && npm run dev"
   },
   "prisma": {

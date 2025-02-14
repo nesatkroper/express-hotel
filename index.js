@@ -39,20 +39,36 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Something went wrong!" });
 });
 
-app.use(cors());
+// app.use(cors());
 
-// app.use(cors({
-//   origin: 'https://react-hotel-two.vercel.app',  
-//   methods: ['GET', 'POST'],
-//   credentials: true
-// }));
+app.use(
+  cors({
+    origin: "https://react-hotel-two.vercel.app",
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
 
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 app.use("/api", router);
 
 const io = new Server(server, {
-  cors: { origin: "https://react-hotel-two.vercel.app" },
+  cors: {
+    origin: "https://react-hotel-two.vercel.app",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+  transports: ["websocket"],
 });
+
+app.use((req, res, next) => {
+  console.log(`Request from: ${req.headers.origin}`);
+  next();
+});
+
+// const io = new Server(server, {
+//   cors: { origin: "https://react-hotel-two.vercel.app" },
+// });
 setupSocket(io, prisma);
 
 const PORT = process.env.PORT || 5555;

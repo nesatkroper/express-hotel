@@ -5,17 +5,14 @@ const select = async (req, res) => {
   const { stocks = false } = req.query;
 
   try {
-    let select;
-
-    if (!id)
-      select = await prisma.supplier.findMany({
-        include: { stocks: stocks === "true" },
-      });
-    else
-      select = await prisma.supplier.findUnique({
-        where: { supplier_id: parseInt(id) },
-        include: { stocks: stocks === "true" },
-      });
+    const select = id
+      ? await prisma.supplier.findUnique({
+          where: { supplier_id: parseInt(id) },
+          include: { stocks: stocks === "true" },
+        })
+      : await prisma.supplier.findMany({
+          include: { stocks: stocks === "true" },
+        });
 
     if (!select || (Array.isArray(select) && !select.length))
       return res.status(400).json({ msg: "no data" });

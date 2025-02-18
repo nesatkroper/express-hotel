@@ -4,25 +4,22 @@ const select = async (req, res) => {
   const { id } = req.params;
   const { sale = false, reservation = false } = req.query;
   try {
-    let select;
-
-    if (!id)
-      select = await prisma.payment.findMany({
-        include: {
-          employee: true,
-          sale: sale === "true",
-          reservation: reservation === "true",
-        },
-      });
-    else
-      select = await prisma.payment.findUnique({
-        where: { payment_id: parseInt(id) },
-        include: {
-          employee: true,
-          sale: sale === "true",
-          reservation: reservation === "true",
-        },
-      });
+    const select = id
+      ? await prisma.payment.findUnique({
+          where: { payment_id: parseInt(id) },
+          include: {
+            employee: true,
+            sale: sale === "true",
+            reservation: reservation === "true",
+          },
+        })
+      : await prisma.payment.findMany({
+          include: {
+            employee: true,
+            sale: sale === "true",
+            reservation: reservation === "true",
+          },
+        });
 
     if (!select || (Array.isArray(select) && !select.length))
       return res.status(400).json({ msg: "no data" });

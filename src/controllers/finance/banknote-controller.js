@@ -4,17 +4,14 @@ const select = async (req, res) => {
   const { id } = req.params;
   const { open = false, close = false } = req.query;
   try {
-    let select;
-
-    if (!id)
-      select = await prisma.bankNote.findMany({
-        include: { open: open === "true", close: close === "true" },
-      });
-    else
-      select = await prisma.bankNote.findUnique({
-        where: { bank_note_id: parseInt(id) },
-        include: { open: open === "true", close: close === "true" },
-      });
+    const select = id
+      ? await prisma.bankNote.findUnique({
+          where: { bank_note_id: parseInt(id) },
+          include: { open: open === "true", close: close === "true" },
+        })
+      : await prisma.bankNote.findMany({
+          include: { open: open === "true", close: close === "true" },
+        });
 
     if (!select || (Array.isArray(select) && !select.length))
       return res.status(400).json({ msg: "no data" });

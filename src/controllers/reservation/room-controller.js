@@ -9,27 +9,25 @@ const select = async (req, res) => {
     sales = false,
   } = req.query;
   try {
-    let select;
+    const select = id
+      ? await prisma.room.findUnique({
+          where: { room_id: parseInt(id) },
+          include: {
+            roomtype: roomtype === "true",
+            pictures: pictures === "true",
+            reservedetails: reservedetails === "true",
+            sales: sales === "true",
+          },
+        })
+      : await prisma.room.findMany({
+          include: {
+            roomtype: roomtype === "true",
+            pictures: pictures === "true",
+            reservedetails: reservedetails === "true",
+            sales: sales === "true",
+          },
+        });
 
-    if (!id)
-      select = await prisma.room.findMany({
-        include: {
-          roomtype: roomtype === "true",
-          pictures: pictures === "true",
-          reservedetails: reservedetails === "true",
-          sales: sales === "true",
-        },
-      });
-    else
-      select = await prisma.room.findUnique({
-        where: { room_id: parseInt(id) },
-        include: {
-          roomtype: roomtype === "true",
-          pictures: pictures === "true",
-          reservedetails: reservedetails === "true",
-          sales: sales === "true",
-        },
-      });
     if (!select || (Array.isArray(select) && !select.length))
       return res.status(400).json({ msg: "no data" });
     return res.status(200).json(select);

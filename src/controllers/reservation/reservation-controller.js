@@ -4,17 +4,14 @@ const select = async (req, res) => {
   const { id } = req.params;
   const { details = false } = req.query;
   try {
-    let select;
-
-    if (!id)
-      select = await prisma.reservation.findMany({
-        include: { details: details === "true" },
-      });
-    else
-      select = await prisma.reservation.findUnique({
-        where: { reservation_id: parseInt(id) },
-        include: { details: details === "true" },
-      });
+    const select = id
+      ? await prisma.reservation.findUnique({
+          where: { reservation_id: parseInt(id) },
+          include: { details: details === "true" },
+        })
+      : await prisma.reservation.findMany({
+          include: { details: details === "true" },
+        });
 
     if (!select || (Array.isArray(select) && !select.length))
       return res.status(400).json({ msg: "no data" });

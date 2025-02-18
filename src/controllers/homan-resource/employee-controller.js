@@ -14,34 +14,31 @@ const select = async (req, res) => {
   } = req.query;
 
   try {
-    let select;
-
-    if (!id)
-      select = await prisma.employee.findMany({
-        include: {
-          position: position === "true",
-          department: department === "true",
-          reservedetails: reservedetails === "true",
-          sales: sales === "true",
-          opens: opens === "true",
-          closes: closes === "true",
-          info: info === "true",
-        },
-        orderBy: { created_at: order },
-      });
-    else
-      select = await prisma.employee.findUnique({
-        where: { employee_id: parseInt(id) },
-        include: {
-          position: position === "true",
-          department: JSON.parse(department),
-          reservedetails: reservedetails === "true",
-          sales: sales === "true",
-          opens: opens === "true",
-          closes: closes === "true",
-          info: info === "true",
-        },
-      });
+    const select = id
+      ? await prisma.employee.findUnique({
+          where: { employee_id: parseInt(id) },
+          include: {
+            position: position === "true",
+            department: JSON.parse(department),
+            reservedetails: reservedetails === "true",
+            sales: sales === "true",
+            opens: opens === "true",
+            closes: closes === "true",
+            info: info === "true",
+          },
+        })
+      : await prisma.employee.findMany({
+          include: {
+            position: position === "true",
+            department: department === "true",
+            reservedetails: reservedetails === "true",
+            sales: sales === "true",
+            opens: opens === "true",
+            closes: closes === "true",
+            info: info === "true",
+          },
+          orderBy: { created_at: order },
+        });
 
     if (!select || (Array.isArray(select) && !select.length)) {
       return res.status(404).json({ msg: "No data found" });

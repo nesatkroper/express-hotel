@@ -6,21 +6,19 @@ const select = async (req, res) => {
   const { id } = req.params;
   const { room = false } = req.query;
   try {
-    let select;
+    const select = id
+      ? await prisma.roomPicture.findUnique({
+          where: { room_picture_id: parseInt(id) },
+          include: {
+            room: room === "true",
+          },
+        })
+      : await prisma.roomPicture.findMany({
+          include: {
+            room: room === "true",
+          },
+        });
 
-    if (!id)
-      select = await prisma.roomPicture.findMany({
-        include: {
-          room: room === "true",
-        },
-      });
-    else
-      select = await prisma.roomPicture.findUnique({
-        where: { room_picture_id: parseInt(id) },
-        include: {
-          room: room === "true",
-        },
-      });
     if (!select || (Array.isArray(select) && !select.length))
       return res.status(400).json({ msg: "no data" });
     return res.status(200).json(select);

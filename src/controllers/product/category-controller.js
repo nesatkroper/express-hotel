@@ -6,18 +6,15 @@ const select = async (req, res) => {
   const { id } = req.params;
   const { order = "desc", products = false } = req.query;
   try {
-    let select;
-
-    if (!id)
-      select = await prisma.productCategory.findMany({
-        include: { products: products === "true" },
-        orderBy: { created_at: order },
-      });
-    else
-      select = await prisma.productCategory.findUnique({
-        where: { product_category_id: parseInt(id) },
-        include: { products: products === "true" },
-      });
+    const select = id
+      ? (select = await prisma.productCategory.findUnique({
+          where: { product_category_id: parseInt(id) },
+          include: { products: products === "true" },
+        }))
+      : (select = await prisma.productCategory.findMany({
+          include: { products: products === "true" },
+          orderBy: { created_at: order },
+        }));
 
     if (!select || (Array.isArray(select) && !select.length))
       return res.status(400).json({ msg: "no data" });

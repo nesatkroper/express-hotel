@@ -4,23 +4,20 @@ const select = async (req, res) => {
   const { id } = req.params;
   const { banknote = false, employee = true } = req.query;
   try {
-    let select;
-
-    if (!id)
-      select = await prisma.openShift.findMany({
-        include: {
-          banknote: banknote === "true",
-          employee: employee === "true",
-        },
-      });
-    else
-      select = await prisma.openShift.findUnique({
-        where: { open_shift_id: parseInt(id) },
-        include: {
-          banknote: banknote === "true",
-          employee: employee === "true",
-        },
-      });
+    const select = id
+      ? await prisma.openShift.findUnique({
+          where: { open_shift_id: parseInt(id) },
+          include: {
+            banknote: banknote === "true",
+            employee: employee === "true",
+          },
+        })
+      : await prisma.openShift.findMany({
+          include: {
+            banknote: banknote === "true",
+            employee: employee === "true",
+          },
+        });
 
     if (!select || (Array.isArray(select) && !select.length))
       return res.status(400).json({ msg: "no data" });

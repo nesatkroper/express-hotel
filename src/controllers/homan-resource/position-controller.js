@@ -5,24 +5,21 @@ const select = async (req, res) => {
   const { order = "desc", department = false, employees = false } = req.query;
 
   try {
-    let result;
-    if (!id) {
-      result = await prisma.position.findMany({
-        include: {
-          department: department === "true",
-          employees: employees === "true",
-        },
-        orderBy: { created_at: order },
-      });
-    } else {
-      result = await prisma.position.findUnique({
-        where: { position_id: parseInt(id) },
-        include: {
-          department: department === "true",
-          employees: employees === "true",
-        },
-      });
-    }
+    const result = id
+      ? await prisma.position.findUnique({
+          where: { position_id: parseInt(id) },
+          include: {
+            department: department === "true",
+            employees: employees === "true",
+          },
+        })
+      : await prisma.position.findMany({
+          include: {
+            department: department === "true",
+            employees: employees === "true",
+          },
+          orderBy: { created_at: order },
+        });
 
     if (!result || (Array.isArray(result) && !result.length))
       return res.status(400).json({ msg: "no data" });

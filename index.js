@@ -18,8 +18,8 @@ const app = express();
 const server = http.createServer(app);
 
 const limiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 500, // Increase to 500 for testing
+  windowMs: 60 * 1000,
+  max: 500,
   message: "Too many requests from this IP, please try again later.",
   keyGenerator: (req) => req.ip,
 });
@@ -38,23 +38,6 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: "Something went wrong!" });
 });
-
-// cors({
-//   origin: (origin, callback) => {
-//     const allowedOrigins = [
-//       "https://react-hotel-two.vercel.app",
-//       "https://nun.up.railway.app",
-//       "http://localhost:5173",
-//     ];
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error("Not allowed by CORS"));
-//     }
-//   },
-//   methods: ["GET", "POST", "PUT", "DELETE"],
-//   credentials: true,
-// });
 
 app.use(
   cors({

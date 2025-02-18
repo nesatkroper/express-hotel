@@ -1,37 +1,38 @@
 const prisma = require("@/provider/client");
 
 const select = async (req, res) => {
+  const { id } = req.params;
+  const {
+    room = false,
+    employee = false,
+    customer = false,
+    saledetails = false,
+  } = req.query;
   try {
-    const select = await prisma.sale.findMany({
-      include: {
-        room: true,
-        employee: true,
-        customer: true,
-        saledetails: true,
-      },
-    });
+    let select;
+
+    if (!id)
+      select = await prisma.sale.findMany({
+        include: {
+          room: room === "true",
+          employee: employee === "true",
+          customer: customer === "true",
+          saledetails: saledetails === "true",
+        },
+      });
+    else
+      select = await prisma.sale.findUnique({
+        where: { sale_id: parseInt(id) },
+        include: {
+          room: room === "true",
+          employee: employee === "true",
+          customer: customer === "true",
+          saledetails: saledetails === "true",
+        },
+      });
     if (!select || (Array.isArray(select) && !select.length))
       return res.status(400).json({ msg: "no data" });
     return res.status(200).json(select);
-  } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
-  }
-};
-
-const selectID = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const selectID = await prisma.sale.findUnique({
-      where: { sale_id: parseInt(id) },
-      include: {
-        room: true,
-        employee: true,
-        customer: true,
-        saleDetaildetails: true,
-      },
-    });
-    if (!selectID) return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(selectID);
   } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }
@@ -114,4 +115,4 @@ const destroy = async (req, res) => {
   }
 };
 
-module.exports = { select, selectID, create, update, destroy };
+module.exports = { select, create, update, destroy };

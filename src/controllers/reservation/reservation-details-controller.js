@@ -1,37 +1,38 @@
 const prisma = require("@/provider/client");
 
 const select = async (req, res) => {
+  const { id } = req.params;
+  const {
+    room = false,
+    employee = false,
+    customer = false,
+    reservation = false,
+  } = req.query;
   try {
-    const select = await prisma.reservationDetail.findMany({
-      include: {
-        room: true,
-        employee: true,
-        customer: true,
-        reservation: true,
-      },
-    });
+    let select;
+
+    if (!id)
+      select = await prisma.reservationDetail.findMany({
+        include: {
+          room: room === "true",
+          employee: employee === "true",
+          customer: customer === "true",
+          reservation: reservation === "true",
+        },
+      });
+    else
+      select = await prisma.reservationDetail.findUnique({
+        where: { reserve_detail_id: parseInt(id) },
+        include: {
+          room: room === "true",
+          employee: employee === "true",
+          customer: customer === "true",
+          reservation: reservation === "true",
+        },
+      });
     if (!select || (Array.isArray(select) && !select.length))
       return res.status(400).json({ msg: "no data" });
     return res.status(200).json(select);
-  } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
-  }
-};
-
-const selectID = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const selectID = await prisma.reservationDetail.findUnique({
-      where: { reserve_detail_id: parseInt(id) },
-      include: {
-        room: true,
-        employee: true,
-        customer: true,
-        reservation: true,
-      },
-    });
-    if (!selectID) return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(selectID);
   } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }
@@ -116,4 +117,4 @@ const destroy = async (req, res) => {
   }
 };
 
-module.exports = { select, selectID, create, update, destroy };
+module.exports = { select, create, update, destroy };

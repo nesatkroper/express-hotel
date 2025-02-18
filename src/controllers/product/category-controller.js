@@ -10,13 +10,13 @@ const select = async (req, res) => {
 
     if (!id)
       select = await prisma.productCategory.findMany({
-        include: { products: JSON.parse(products) },
+        include: { products: products === "true" },
         orderBy: { created_at: order },
       });
     else
       select = await prisma.productCategory.findUnique({
         where: { product_category_id: parseInt(id) },
-        include: { products: JSON.parse(products) },
+        include: { products: products === "true" },
       });
 
     if (!select || (Array.isArray(select) && !select.length))

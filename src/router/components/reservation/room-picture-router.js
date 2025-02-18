@@ -35,14 +35,12 @@ const upload = multer({
 
 const {
   select,
-  selectID,
   create,
   update,
   destroy,
 } = require("@/controllers/reservation/room-picture-controller");
 
-router.get("/", select);
-router.get("/:id", selectID);
+router.get("/:id?", select);
 router.post("/", upload.single("picture"), create);
 router.put("/:id", upload.single("picture"), update);
 router.delete("/:id", destroy);

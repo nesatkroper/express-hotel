@@ -19,13 +19,13 @@ const select = async (req, res) => {
     if (!id)
       select = await prisma.employee.findMany({
         include: {
-          position: JSON.parse(position),
-          department: JSON.parse(department),
-          reservedetails: JSON.parse(reservedetails),
-          sales: JSON.parse(sales),
-          opens: JSON.parse(opens),
-          closes: JSON.parse(closes),
-          info: JSON.parse(info),
+          position: position === "true",
+          department: department === "true",
+          reservedetails: reservedetails === "true",
+          sales: sales === "true",
+          opens: opens === "true",
+          closes: closes === "true",
+          info: info === "true",
         },
         orderBy: { created_at: order },
       });
@@ -33,13 +33,13 @@ const select = async (req, res) => {
       select = await prisma.employee.findUnique({
         where: { employee_id: parseInt(id) },
         include: {
-          position: JSON.parse(position),
+          position: position === "true",
           department: JSON.parse(department),
-          reservedetails: JSON.parse(reservedetails),
-          sales: JSON.parse(sales),
-          opens: JSON.parse(opens),
-          closes: JSON.parse(closes),
-          info: JSON.parse(info),
+          reservedetails: reservedetails === "true",
+          sales: sales === "true",
+          opens: opens === "true",
+          closes: closes === "true",
+          info: info === "true",
         },
       });
 

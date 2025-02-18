@@ -2,19 +2,25 @@ const prisma = require("@/provider/client");
 
 const select = async (req, res) => {
   const { id } = req.params;
-  const { order = "desc", dep = false, emp = false } = req.query;
+  const { order = "desc", department = false, employees = false } = req.query;
 
   try {
     let result;
     if (!id) {
       result = await prisma.position.findMany({
-        include: { department: JSON.parse(dep), employees: JSON.parse(emp) },
+        include: {
+          department: department === "true",
+          employees: employees === "true",
+        },
         orderBy: { created_at: order },
       });
     } else {
       result = await prisma.position.findUnique({
         where: { position_id: parseInt(id) },
-        include: { department: JSON.parse(dep), employees: JSON.parse(emp) },
+        include: {
+          department: department === "true",
+          employees: employees === "true",
+        },
       });
     }
 

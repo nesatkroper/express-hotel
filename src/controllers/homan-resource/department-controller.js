@@ -9,8 +9,8 @@ const select = async (req, res) => {
     if (!id)
       select = await prisma.department.findMany({
         include: {
-          positions: JSON.parse(positions),
-          employees: JSON.parse(employees),
+          positions: positions === "true",
+          employees: employees === "true",
         },
         orderBy: { created_at: order },
       });
@@ -18,8 +18,8 @@ const select = async (req, res) => {
       select = await prisma.department.findUnique({
         where: { department_id: parseInt(id) },
         include: {
-          positions: JSON.parse(positions),
-          employees: JSON.parse(employees),
+          positions: positions === "true",
+          employees: employees === "true",
         },
       });
     if (!select || (Array.isArray(select) && !select.length))

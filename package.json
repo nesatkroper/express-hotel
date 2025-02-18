@@ -10,7 +10,7 @@
     "dbpush": "npx prisma db push",
     "generate": "npx prisma generate",
     "seed": "npx prisma db seed",
-    "git": "git add . && git commit -m \"config for hosting\" &&   git push && npm run dev",
+    "git": "git add . && git commit -m \"modify query params\" &&   git push && npm run dev",
     "prisma": "npm run migrate && npm run generate && npm run dev"
   },
   "prisma": {

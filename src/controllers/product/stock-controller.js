@@ -1,27 +1,23 @@
 const prisma = require("@/provider/client");
 
 const select = async (req, res) => {
+  const { id } = req.params;
+  const { product = false, supplier = false } = req.query;
   try {
-    const select = await prisma.productStock.findMany({
-      include: { product: true, supplier: true },
-    });
+    let select;
+    if (!id)
+      select = await prisma.productStock.findMany({
+        include: { product: product === "true", supplier: supplier === "true" },
+      });
+    else
+      select = await prisma.productStock.findUnique({
+        where: { product_stock_id: parseInt(id) },
+        include: { product: product === "true", supplier: supplier === "true" },
+      });
+
     if (!select || (Array.isArray(select) && !select.length))
       return res.status(400).json({ msg: "no data" });
     return res.status(200).json(select);
-  } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
-  }
-};
-
-const selectID = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const selectID = await prisma.productStock.findUnique({
-      where: { product_stock_id: parseInt(id) },
-      include: { product: true, supplier: true },
-    });
-    if (!selectID) return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(selectID);
   } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }
@@ -106,4 +102,4 @@ const destroy = async (req, res) => {
   }
 };
 
-module.exports = { select, selectID, create, update, destroy };
+module.exports = { select, create, update, destroy };

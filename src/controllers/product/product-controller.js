@@ -12,13 +12,13 @@ const select = async (req, res) => {
   } = req.query;
 
   try {
-    const select = id
+    const result = id
       ? await prisma.product.findUnique({
           where: { product_id: parseInt(id) },
           include: {
-            category: JSON.parse(category),
-            stocks: JSON.parse(stocks),
-            saledetails: JSON.parse(saledetails),
+            category: category === "true",
+            stocks: stocks === "true",
+            saledetails: saledetails === "true",
           },
         })
       : await prisma.product.findMany({
@@ -30,9 +30,9 @@ const select = async (req, res) => {
           orderBy: { created_at: order },
         });
 
-    if (!select || (Array.isArray(select) && !select.length))
+    if (!result || (Array.isArray(result) && !result.length))
       return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(select);
+    return await res.status(200).json(result);
   } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }

@@ -2,19 +2,19 @@ const prisma = require("@/provider/client");
 
 const select = async (req, res) => {
   const { id } = req.params;
-  const { banknote = false, employee = true } = req.query;
+  const { banknotes = false, employee = false } = req.query;
   try {
     const select = id
-      ? await prisma.closeShift.findUnique({
-          where: { close_shift_id: parseInt(id) },
+      ? await prisma.shift.findUnique({
+          where: { open_shift_id: parseInt(id) },
           include: {
-            banknote: banknote === "true",
+            banknotes: banknotes === "true",
             employee: employee === "true",
           },
         })
-      : await prisma.closeShift.findMany({
+      : await prisma.shift.findMany({
           include: {
-            banknote: banknote === "true",
+            banknotes: banknotes === "true",
             employee: employee === "true",
           },
         });
@@ -31,22 +31,26 @@ const create = async (req, res) => {
   try {
     const {
       employee_id,
-      bank_note_id,
       shift_code,
+      open_khmer_riel,
+      open_us_dollar,
       close_khmer_riel,
       close_us_dollar,
     } = req.body;
 
     const code = `SHIFT-${shift_code.toString().padStart(7, "0")}`;
 
-    const create = await prisma.closeShift.create({
+    const create = await prisma.openShift.create({
       data: {
         employee_id,
         bank_note_id,
         shift_code: code,
+        open_khmer_riel,
+        open_us_dollar,
         close_khmer_riel,
         close_us_dollar,
-        close_date: new Date(),
+        open_time: new Date(),
+        close_time: new Date(),
       },
     });
 
@@ -63,18 +67,18 @@ const update = async (req, res) => {
       employee_id,
       bank_note_id,
       shift_code,
-      close_khmer_riel,
-      close_us_dollar,
+      open_khmer_riel,
+      open_us_dollar,
     } = req.body;
 
-    await prisma.closeShift.update({
-      where: { close_shift_id: parseInt(id) },
+    await prisma.openShift.update({
+      where: { open_shift_id: parseInt(id) },
       data: {
         employee_id,
         bank_note_id,
         shift_code,
-        close_khmer_riel,
-        close_us_dollar,
+        open_khmer_riel,
+        open_us_dollar,
       },
     });
 
@@ -89,8 +93,8 @@ const destroy = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const destroy = await prisma.closeShift.delete({
-      where: { close_shift_id: parseInt(id) },
+    const destroy = await prisma.openShift.delete({
+      where: { open_shift_id: parseInt(id) },
     });
 
     return res.status(200).json(destroy);

@@ -98,8 +98,7 @@ model Employee {
   department Department? @relation(fields: [department_id], references: [department_id])
   reservedetails   ReservationDetail[]
   sales    Sale[]
-  opens   OpenShift[]
-  closes   CloseShift[]
+  shift     Shift[]
   attendaces Attendace[]
   groupchat   GroupMessage[]
     payment  Payment[]
@@ -358,36 +357,26 @@ model Payment {
   employee   Employee     @relation(fields: [employee_id], references: [employee_id])
 }
 
-model OpenShift {
-  open_shift_id   Int      @id @default(autoincrement())
+model Shift {
+  shift_id        Int      @id @default(autoincrement())
   employee_id     Int?
-  bank_note_id    Int    @unique
   shift_code      String
   open_khmer_riel Decimal   @db.Decimal(12,2)  @default(0.00)
-  open_us_dollar  Decimal    @db.Decimal(12,2)  @default(0.00)
-  open_date       DateTime?
-  created_at       DateTime @default(now())
+  open_us_dollar  Decimal   @db.Decimal(12,2)  @default(0.00)
+  open_time       DateTime    @default(now())
+  close_khmer_riel Decimal?  @db.Decimal(12,2)  @default(0.00)
+  close_us_dollar  Decimal?  @db.Decimal(12,2)  @default(0.00)
+  close_time      DateTime?   
+  created_at      DateTime @default(now())
 
-  banknote    BankNote?  @relation(fields: [bank_note_id], references: [bank_note_id])
+  banknotes    BankNote[]
   employee    Employee?   @relation(fields: [employee_id], references: [employee_id])
 }
 
-model CloseShift {
-  close_shift_id  Int      @id @default(autoincrement())
-  employee_id     Int?
-  bank_note_id    Int    @unique
-  shift_code      String
-  close_khmer_riel Decimal   @db.Decimal(12,2)  @default(0.00)
-  close_us_dollar  Decimal   @db.Decimal(12,2)  @default(0.00)
-  close_date      DateTime?
-  created_at       DateTime @default(now())
-
-  banknote    BankNote?  @relation(fields: [bank_note_id], references: [bank_note_id])
-  employee    Employee?   @relation(fields: [employee_id], references: [employee_id])
-}
 
 model BankNote {
   bank_note_id Int @id @default(autoincrement())
+  shift_id    Int
   khmer_100    Int? @default(0)
   khmer_500    Int? @default(0)
   khmer_1K     Int? @default(0)
@@ -408,11 +397,8 @@ model BankNote {
   us_100       Int? @default(0)
   created_at    DateTime @default(now())
 
-  open   OpenShift?
-  close   CloseShift?
+  shift  Shift   @relation(fields: [shift_id], references: [shift_id])
 }
-
-
 
 model GroupMessage {
   group_message_id     Int @id @default(autoincrement())

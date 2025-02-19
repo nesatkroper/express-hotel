@@ -1,9 +1,8 @@
 //! finance
 const bankNoteRouter = require("@/router/components/finance/banknote-router");
-const closeRouter = require("@/router/components/finance/close-router");
 const KHQRRouter = require("@/router/components/finance/khqr-router");
 const paymentRouter = require("@/router/components/finance/payment-router");
-const openRouter = require("@/router/components/finance/open-router");
+const shiftRouter = require("@/router/components/finance/shift-router");
 
 //! human-resource
 const authRouter = require("@/router/components/human-resource/auth-router");
@@ -51,8 +50,7 @@ module.exports = {
   paymentRouter,
   employeeRouter,
   customerRouter,
-  closeRouter,
-  openRouter,
+  shiftRouter,
   productRouter,
   supplierRouter,
   stockRouter,

@@ -7,7 +7,7 @@ const {
   create,
   update,
   destroy,
-} = require("@/controllers/finance/close-controller");
+} = require("@/controllers/finance/shift-controller");
 
 router.get("/:id?", select);
 router.post("/", create);

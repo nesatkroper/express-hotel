@@ -5,29 +5,29 @@ const fs = require("fs");
 const select = async (req, res) => {
   const { id } = req.params;
   const { order = "desc", products = false } = req.query;
+
   try {
-    const select = id
-      ? (select = await prisma.productCategory.findUnique({
+    const result = id
+      ? await prisma.productCategory.findUnique({
           where: { product_category_id: parseInt(id) },
           include: { products: products === "true" },
-        }))
-      : (select = await prisma.productCategory.findMany({
+        })
+      : await prisma.productCategory.findMany({
           include: { products: products === "true" },
           orderBy: { created_at: order },
-        }));
+        });
 
-    if (!select || (Array.isArray(select) && !select.length))
+    if (!result || (Array.isArray(result) && !result.length)) {
       return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(select);
+    }
+
+    return res.status(200).json(result);
   } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
+    return res.status(500).json({ error: `Error: ${err}` });
   }
 };
 
 const create = async (req, res) => {
-  console.log(req.body);
-  console.log(req.file);
-
   try {
     const { category_name, category_code, memo } = req.body;
     const picture = req.file ? path.basename(req.file.path) : null;

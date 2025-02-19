@@ -14,8 +14,7 @@ const {
   paymentRouter,
   employeeRouter,
   customerRouter,
-  closeRouter,
-  openRouter,
+  shiftRouter,
   productRouter,
   supplierRouter,
   stockRouter,
@@ -43,8 +42,7 @@ router.use("/banknote", bankNoteRouter);
 router.use("/payment", paymentRouter);
 router.use("/employee", employeeRouter);
 router.use("/customer", customerRouter);
-router.use("/close", closeRouter);
-router.use("/open", openRouter);
+router.use("/shift", shiftRouter);
 router.use("/product", productRouter);
 router.use("/cart", cartRouter);
 router.use("/supplier", supplierRouter);

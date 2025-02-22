@@ -45,6 +45,7 @@ const register = async (req, res) => {
         password: hashedPass,
         role_id: authRole.role_id,
         employee_id: parseInt(employee_id, 10),
+        customer_id: parseInt(customer_id, 10),
       },
       include: { role: true },
     });
@@ -79,7 +80,7 @@ const login = async (req, res) => {
     // ! Find user by email
     const auth = await prismaClient.auth.findUnique({
       where: { email },
-      include: { role: true },
+      include: { role: true, employee: true, customer: true },
     });
 
     //  ! check if auth found
@@ -99,11 +100,7 @@ const login = async (req, res) => {
     const token = generateToken(auth);
     res.json({
       token,
-      auth: {
-        auth_id: auth.auth_id,
-        email: auth.email,
-        role: auth.role.name,
-      },
+      auth,
     });
   } catch (err) {
     console.error(err);

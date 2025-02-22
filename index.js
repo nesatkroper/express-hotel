@@ -47,6 +47,7 @@ app.use(
         "https://nun.up.railway.app",
         "http://localhost:5173",
       ];
+      // const allowedOrigins = ["*"];
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {

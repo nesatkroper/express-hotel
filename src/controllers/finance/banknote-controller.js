@@ -2,15 +2,15 @@ const prisma = require("@/provider/client");
 
 const select = async (req, res) => {
   const { id } = req.params;
-  const { open = false, close = false } = req.query;
+  const { shift = false } = req.query;
   try {
     const select = id
       ? await prisma.bankNote.findUnique({
           where: { bank_note_id: parseInt(id) },
-          include: { open: open === "true", close: close === "true" },
+          include: { shift: shift === "true" },
         })
       : await prisma.bankNote.findMany({
-          include: { open: open === "true", close: close === "true" },
+          include: { shift: shift === "true" },
         });
 
     if (!select || (Array.isArray(select) && !select.length))
@@ -24,6 +24,7 @@ const select = async (req, res) => {
 const create = async (req, res) => {
   try {
     const {
+      shift_id,
       khmer_100,
       khmer_500,
       khmer_1K,
@@ -46,6 +47,7 @@ const create = async (req, res) => {
 
     const create = await prisma.bankNote.create({
       data: {
+        shift_id,
         khmer_100,
         khmer_500,
         khmer_1K,
@@ -77,6 +79,7 @@ const update = async (req, res) => {
   try {
     const { id } = req.params;
     const {
+      shift_id,
       khmer_100,
       khmer_500,
       khmer_1K,
@@ -100,6 +103,7 @@ const update = async (req, res) => {
     await prisma.bankNote.update({
       where: { bank_note_id: parseInt(id) },
       data: {
+        shift_id,
         khmer_100,
         khmer_500,
         khmer_1K,

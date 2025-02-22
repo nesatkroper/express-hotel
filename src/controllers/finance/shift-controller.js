@@ -1,4 +1,5 @@
 const prisma = require("@/provider/client");
+const moment = require("moment-timezone");
 
 const select = async (req, res) => {
   const { id } = req.params;
@@ -11,12 +12,14 @@ const select = async (req, res) => {
             banknotes: banknotes === "true",
             employee: employee === "true",
           },
+          orderBy: { shift_id: "desc" },
         })
       : await prisma.shift.findMany({
           include: {
             banknotes: banknotes === "true",
             employee: employee === "true",
           },
+          orderBy: { shift_id: "desc" },
         });
 
     if (!select || (Array.isArray(select) && !select.length))
@@ -31,25 +34,33 @@ const create = async (req, res) => {
   try {
     const {
       employee_id,
-      shift_code,
       open_khmer_riel,
       open_us_dollar,
       close_khmer_riel,
       close_us_dollar,
     } = req.body;
 
+    const lastShift = await prisma.shift.findFirst({
+      select: {
+        shift_id: true,
+      },
+      orderBy: {
+        shift_id: "desc",
+      },
+    });
+
+    shift_code = lastShift?.shift_id + 1;
     const code = `SHIFT-${shift_code.toString().padStart(7, "0")}`;
 
-    const create = await prisma.openShift.create({
+    const create = await prisma.shift.create({
       data: {
         employee_id,
-        bank_note_id,
         shift_code: code,
         open_khmer_riel,
         open_us_dollar,
         close_khmer_riel,
         close_us_dollar,
-        open_time: new Date(),
+        open_time: moment().tz("Asia/Phnom_Penh").toDate(),
         close_time: new Date(),
       },
     });
@@ -63,22 +74,14 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      employee_id,
-      bank_note_id,
-      shift_code,
-      open_khmer_riel,
-      open_us_dollar,
-    } = req.body;
+    const { close_khmer_riel, close_us_dollar, close_time } = req.body;
 
-    await prisma.openShift.update({
-      where: { open_shift_id: parseInt(id) },
+    await prisma.shift.update({
+      where: { shift_id: parseInt(id) },
       data: {
-        employee_id,
-        bank_note_id,
-        shift_code,
-        open_khmer_riel,
-        open_us_dollar,
+        close_khmer_riel,
+        close_us_dollar,
+        close_time: moment().tz("Asia/Phnom_Penh").toDate(),
       },
     });
 

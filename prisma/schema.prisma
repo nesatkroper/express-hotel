@@ -99,9 +99,9 @@ model Employee {
   reservedetails   ReservationDetail[]
   sales    Sale[]
   shift     Shift[]
-  attendaces Attendace[]
+  attendances Attendace[]
   groupchat   GroupMessage[]
-    payment  Payment[]
+  payment  Payment[]
 }
 
 model EmployeeInfo  {

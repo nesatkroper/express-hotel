@@ -73,7 +73,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
-app.use("/api", router);
+app.use("/v1", router);
 
 const io = new Server(server, {
   cors: {

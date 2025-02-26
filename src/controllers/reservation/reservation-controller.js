@@ -2,15 +2,22 @@ const prisma = require("@/provider/client");
 
 const select = async (req, res) => {
   const { id } = req.params;
-  const { details = false } = req.query;
+  const {
+    order = "desc",
+    status = "active",
+    details = false,
+    payment = false,
+  } = req.query;
   try {
     const select = id
       ? await prisma.reservation.findUnique({
-          where: { reservation_id: parseInt(id) },
-          include: { details: details === "true" },
+          where: { reservation_id: parseInt(id), status },
+          include: { details: details === "true", payment: payment === "true" },
         })
       : await prisma.reservation.findMany({
-          include: { details: details === "true" },
+          where: { status },
+          include: { details: details === "true", payment: payment === "true" },
+          orderBy: { reservation_id: order },
         });
 
     if (!select || (Array.isArray(select) && !select.length))
@@ -36,8 +43,6 @@ const create = async (req, res) => {
       memo,
       is_hidden,
     } = req.body;
-
-    // const code = `INV-SR-${employee_code.toString().padStart(4, "0")}`;
 
     const create = await prisma.reservation.create({
       data: {

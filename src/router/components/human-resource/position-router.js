@@ -6,12 +6,14 @@ const {
   select,
   create,
   update,
+  patch,
   destroy,
 } = require("@/controllers/homan-resource/position-controller");
 
 router.get("/:id?", select);
 router.post("/", create);
 router.put("/:id", update);
+router.patch("/:id", patch);
 router.delete("/:id", destroy);
 
 module.exports = router;

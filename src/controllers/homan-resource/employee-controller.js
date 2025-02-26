@@ -4,6 +4,8 @@ const select = async (req, res) => {
   const { id } = req.params;
   const {
     order = "desc",
+    status = "active",
+    auth = false,
     position = false,
     department = false,
     reservedetails = false,
@@ -17,9 +19,10 @@ const select = async (req, res) => {
   try {
     const select = id
       ? await prisma.employee.findUnique({
-          where: { employee_id: parseInt(id) },
+          where: { employee_id: parseInt(id), status },
           include: {
             info: true,
+            auth: auth === "true",
             position: position === "true",
             department: department === "true",
             reservedetails: reservedetails === "true",
@@ -31,8 +34,10 @@ const select = async (req, res) => {
           },
         })
       : await prisma.employee.findMany({
+          where: { status },
           include: {
             info: true,
+            auth: auth === "true",
             position: position === "true",
             department: department === "true",
             reservedetails: reservedetails === "true",
@@ -59,8 +64,6 @@ const select = async (req, res) => {
 const create = async (req, res) => {
   try {
     const {
-      employee_code,
-      status,
       first_name,
       last_name,
       gender,
@@ -72,17 +75,16 @@ const create = async (req, res) => {
       hired_date,
     } = req.body;
 
-    if (!employee_code) {
-      return res.status(400).json({ error: "employee_code is required" });
-    }
-
-    const code = `EMP-${employee_code.toString().padStart(4, "0")}`;
+    const last = await prisma.employee.findFirst({
+      orderBy: { employee_id: "desc" },
+    });
     const cleanphone = phone.startsWith("0") ? phone.slice(1) : phone;
 
     const create = await prisma.employee.create({
       data: {
-        employee_code: code,
-        status,
+        employee_code: `EMP-${(last ? last.employee_id + 1 : 1)
+          .toString()
+          .padStart(4, "0")}`,
         first_name,
         last_name,
         gender,
@@ -106,8 +108,6 @@ const update = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      employee_code,
-      status,
       first_name,
       last_name,
       gender,
@@ -119,11 +119,9 @@ const update = async (req, res) => {
       hired_date,
     } = req.body;
 
-    await prisma.employee.update({
+    const update = await prisma.employee.update({
       where: { employee_id: parseInt(id) },
       data: {
-        employee_code,
-        status,
         first_name,
         last_name,
         gender,
@@ -140,6 +138,37 @@ const update = async (req, res) => {
     return res.status(200).json(update);
   } catch (err) {
     console.log(err);
+    return res.status(500).json({ error: `Error :${err}` });
+  }
+};
+
+const patch = async (req, res) => {
+  const { id } = req.params;
+  const { type } = req.query;
+
+  try {
+    if (type) {
+      const patch =
+        type == "remove"
+          ? await prisma.employee.update({
+              where: {
+                employee_id: parseInt(id, 10),
+              },
+              data: { status: "disactive" },
+            })
+          : type == "restore"
+          ? await prisma.employee.update({
+              where: {
+                employee_id: parseInt(id, 10),
+              },
+              data: { status: "active" },
+            })
+          : "Type Invalided.";
+
+      return res.status(200).json(patch);
+    }
+    return res.status(400).json({ msg: "Type Undefined." });
+  } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }
 };
@@ -168,5 +197,6 @@ module.exports = {
   select,
   create,
   update,
+  patch,
   destroy,
 };

@@ -4,17 +4,18 @@ const fs = require("fs");
 
 const select = async (req, res) => {
   const { id } = req.params;
-  const { order = "desc", products = false } = req.query;
+  const { order = "desc", status = "active", products = false } = req.query;
 
   try {
     const result = id
       ? await prisma.productCategory.findUnique({
-          where: { product_category_id: parseInt(id) },
+          where: { product_category_id: parseInt(id), status },
           include: { products: products === "true" },
         })
       : await prisma.productCategory.findMany({
+          where: { status },
           include: { products: products === "true" },
-          orderBy: { created_at: order },
+          orderBy: { product_category_id: order },
         });
 
     if (!result || (Array.isArray(result) && !result.length)) {
@@ -29,16 +30,20 @@ const select = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const { category_name, category_code, memo } = req.body;
+    const { category_name, memo } = req.body;
     const picture = req.file ? path.basename(req.file.path) : null;
 
-    const code = `CAT-${category_code.toString().padStart(3, "0")}`;
+    const last = prisma.category.findFirst({
+      orderBy: { product_category_id: "desc" },
+    });
 
     const create = await prisma.productCategory.create({
       data: {
         picture,
         category_name,
-        category_code: code,
+        category_code: `CAT-${(last ? last.product_category_id + 1 : 1)
+          .toString()
+          .padStart(3, "0")}`,
         memo,
       },
     });
@@ -99,6 +104,37 @@ const update = async (req, res) => {
   }
 };
 
+const patch = async (req, res) => {
+  const { id } = req.params;
+  const { type } = req.query;
+
+  try {
+    if (type) {
+      const patch =
+        type == "remove"
+          ? await prisma.productCategory.update({
+              where: {
+                product_category_id: parseInt(id, 10),
+              },
+              data: { status: "disactive" },
+            })
+          : type == "restore"
+          ? await prisma.productCategory.update({
+              where: {
+                product_category_id: parseInt(id, 10),
+              },
+              data: { status: "active" },
+            })
+          : "Type Invalided.";
+
+      return res.status(200).json(patch);
+    }
+    return res.status(400).json({ msg: "Type Undefined." });
+  } catch (err) {
+    return res.status(500).json({ error: `Error :${err}` });
+  }
+};
+
 const destroy = async (req, res) => {
   try {
     const { id } = req.params;
@@ -130,4 +166,4 @@ const destroy = async (req, res) => {
   }
 };
 
-module.exports = { select, create, update, destroy };
+module.exports = { select, create, update, patch, destroy };

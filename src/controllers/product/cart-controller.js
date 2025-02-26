@@ -60,7 +60,7 @@ const qtyIncrease = async (req, res) => {
         cart_id: parseInt(cart_id, 10),
       },
       data: {
-        quantity: parseInt(findCart.quantity, 10) + 1,
+        quantity: (findCart.quantity, 10) + 1,
       },
     });
 
@@ -94,7 +94,7 @@ const qtyDecrease = async (req, res) => {
           cart_id: parseInt(cart_id, 10),
         },
         data: {
-          quantity: parseInt(findCart.quantity, 10) - 1,
+          quantity: (findCart.quantity, 10) - 1,
         },
       });
 

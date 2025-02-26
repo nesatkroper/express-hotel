@@ -6,6 +6,7 @@ const select = async (req, res) => {
   const { id } = req.params;
   const {
     order = "desc",
+    status = "active",
     category = false,
     stocks = false,
     saledetails = false,
@@ -14,7 +15,7 @@ const select = async (req, res) => {
   try {
     const result = id
       ? await prisma.product.findUnique({
-          where: { product_id: parseInt(id) },
+          where: { product_id: parseInt(id), status },
           include: {
             category: category === "true",
             stocks: stocks === "true",
@@ -22,12 +23,13 @@ const select = async (req, res) => {
           },
         })
       : await prisma.product.findMany({
+          where: { status },
           include: {
             category: category === "true",
             stocks: stocks === "true",
             saledetails: saledetails === "true",
           },
-          orderBy: { created_at: order },
+          orderBy: { product_id: order },
         });
 
     if (!result || (Array.isArray(result) && !result.length))
@@ -40,27 +42,24 @@ const select = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const {
-      product_code,
-      product_name,
-      product_category_id,
-      price,
-      discount_rate,
-      status,
-    } = req.body;
+    const { product_name, product_category_id, price, discount_rate } =
+      req.body;
 
     const picture = req.file ? path.basename(req.file.path) : null;
-    const code = `PRO-${product_code.toString().padStart(5, "0")}`;
+    const last = await prisma.product.findFirst({
+      orderBy: { product_id: "desc" },
+    });
 
     const create = await prisma.product.create({
       data: {
         picture,
-        product_code: code,
+        product_code: `PRO-${(last ? last.product_id + 1 : 1)
+          .toString()
+          .padStart(5, "0")}`,
         product_name,
         product_category_id: parseInt(product_category_id, 10),
         price,
         discount_rate: parseInt(discount_rate, 10),
-        status: status === "true",
       },
     });
 
@@ -74,14 +73,8 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      product_code,
-      product_name,
-      product_category_id,
-      price,
-      discount_rate,
-      status,
-    } = req.body;
+    const { product_name, product_category_id, price, discount_rate } =
+      req.body;
 
     const picture = req.file ? path.basename(req.file.path) : null;
 
@@ -105,31 +98,58 @@ const update = async (req, res) => {
         where: { product_id: parseInt(id) },
         data: {
           picture,
-          product_code,
           product_name,
           product_category_id,
           price,
           discount_rate,
-          status,
         },
       });
     } else {
       await prisma.product.update({
         where: { product_id: parseInt(id) },
         data: {
-          product_code,
           product_name,
           product_category_id,
           price,
           discount_rate,
-          status,
         },
       });
     }
-    console.log(update);
-    return res.status(200).json(update);
+
+    return res.status(200).json({ msg: "Update Successfully." });
   } catch (err) {
     console.log(err);
+    return res.status(500).json({ error: `Error :${err}` });
+  }
+};
+
+const patch = async (req, res) => {
+  const { id } = req.params;
+  const { type } = req.query;
+
+  try {
+    if (type) {
+      const patch =
+        type == "remove"
+          ? await prisma.product.update({
+              where: {
+                product_id: parseInt(id, 10),
+              },
+              data: { status: "disactive" },
+            })
+          : type == "restore"
+          ? await prisma.product.update({
+              where: {
+                product_id: parseInt(id, 10),
+              },
+              data: { status: "active" },
+            })
+          : "Type Invalided.";
+
+      return res.status(200).json(patch);
+    }
+    return res.status(400).json({ msg: "Type Undefined." });
+  } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }
 };
@@ -165,4 +185,4 @@ const destroy = async (req, res) => {
   }
 };
 
-module.exports = { select, create, update, destroy };
+module.exports = { select, create, update, patch, destroy };

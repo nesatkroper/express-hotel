@@ -39,8 +39,6 @@ const create = async (req, res) => {
       memo,
     } = req.body;
 
-    // const code = `INV-SR-${employee_code.toString().padStart(4, "0")}`;
-
     const create = await prisma.productStock.create({
       data: {
         product_id,

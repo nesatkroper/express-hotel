@@ -10,9 +10,11 @@ const rateLimit = require("express-rate-limit");
 const prisma = require("@/provider/client");
 const bodyParser = require("body-parser");
 const { Server } = require("socket.io");
+
 const {
   setupSocket,
 } = require("@/controllers/realtime/setup-socket-controller");
+const dbLogger = require("@/middleware/logger");
 
 const app = express();
 const server = http.createServer(app);
@@ -34,10 +36,7 @@ app.use((err, req, res, next) => {
   next();
 });
 
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong!" });
-});
+app.use(dbLogger);
 
 app.use(
   cors({
@@ -65,12 +64,6 @@ app.use(
     credentials: true,
   })
 );
-
-app.use((req, res, next) => {
-  console.log(`CORS Request from: ${req.headers.origin}`);
-  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
-  next();
-});
 
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 app.use("/v1", router);
@@ -105,5 +98,5 @@ setupSocket(io, prisma);
 
 const PORT = process.env.PORT || 5555;
 server.listen(PORT, () => {
-  console.log(`Server running on port http://localhost:${PORT}/api`);
+  console.log(`Server running on port http://localhost:${PORT}/v1`);
 });

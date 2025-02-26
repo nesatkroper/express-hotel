@@ -7,12 +7,14 @@ const {
   select,
   create,
   update,
+  patch,
   destroy,
 } = require("@/controllers/product/product-controller");
 
 router.get("/:id?", select);
 router.post("/", upload.single("picture"), create);
 router.put("/:id", upload.single("picture"), update);
+router.patch("/:id", patch);
 router.delete("/:id", destroy);
 
 module.exports = router;

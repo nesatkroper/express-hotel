@@ -6,11 +6,11 @@
   "scripts": {
     "test": "jest",
     "dev": "nodemon index.js",
-    "migrate": "npx prisma migrate dev --name modify-shift and banknote",
+    "migrate": "npx prisma migrate dev --name add log",
     "dbpush": "npx prisma db push",
     "generate": "npx prisma generate",
     "seed": "npx prisma db seed",
-    "git": "git add . && git commit -m \"modify api key\" &&   git push && npm run dev",
+    "git": "git add . && git commit -m \"add log middleware\" &&   git push && npm run dev",
     "prisma": "npm run migrate && npm run generate && npm run dev"
   },
   "prisma": {
@@ -38,6 +38,7 @@
     "luxon": "^3.5.0",
     "module-alias": "^2.2.3",
     "moment-timezone": "^0.5.47",
+    "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.11.4",
     "nodemailer": "^6.9.16",

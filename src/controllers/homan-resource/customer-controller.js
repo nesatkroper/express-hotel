@@ -3,28 +3,37 @@ const path = require("path");
 const fs = require("fs");
 
 const select = async (req, res) => {
-  try {
-    const select = await prisma.customer.findMany({
-      include: {
-        auth: true,
-        reservedetails: true,
-        sales: true,
-      },
-    });
-    if (!select.length) return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(select);
-  } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
-  }
-};
+  const { id } = req.params;
+  const {
+    order = "desc",
+    status = "active",
+    auth = false,
+    reservedetails = false,
+    sales = false,
+  } = req.query;
 
-const selectReserve = async (req, res) => {
+  console.log(id);
+
   try {
-    const select = await prisma.customer.findMany({
-      include: {
-        reservedetails: true,
-      },
-    });
+    const select = id
+      ? await prisma.customer.findUnique({
+          where: { customer_id: parseInt(id, 10), status },
+          include: {
+            auth: auth === "true",
+            reservedetails: reservedetails === "true",
+            sales: sales === "true",
+          },
+        })
+      : await prisma.customer.findMany({
+          where: { status },
+          include: {
+            auth: auth === "true",
+            reservedetails: reservedetails === "true",
+            sales: sales === "true",
+          },
+          orderBy: { customer_id: order },
+        });
+
     if (!select || (Array.isArray(select) && !select.length))
       return res.status(400).json({ msg: "no data" });
     return res.status(200).json(select);
@@ -33,42 +42,9 @@ const selectReserve = async (req, res) => {
   }
 };
 
-const selectSale = async (req, res) => {
-  try {
-    const select = await prisma.customer.findMany({
-      include: {
-        sales: true,
-      },
-    });
-    if (!select.length) return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(select);
-  } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
-  }
-};
-
-const selectID = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const selectID = await prisma.customer.findUnique({
-      where: { customer_id: parseInt(id) },
-      include: {
-        auth: true,
-        reservedetails: true,
-        sales: true,
-      },
-    });
-    if (!selectID) return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(selectID);
-  } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
-  }
-};
-
 const create = async (req, res) => {
   try {
     const {
-      account_status,
       first_name,
       last_name,
       gender,
@@ -78,19 +54,17 @@ const create = async (req, res) => {
       city,
       state,
     } = req.body;
-    const picture = req.file ? path.basename(req.file.path) : null;
 
-    const cleanphone = phone.startsWith("0") ? phone.slice(1) : phone;
+    const picture = req.file ? path.basename(req.file.path) : null;
 
     const create = await prisma.customer.create({
       data: {
         picture,
-        account_status,
         first_name,
         last_name,
         gender,
         email,
-        phone: `+855${cleanphone}`,
+        phone,
         address,
         city,
         state,
@@ -108,7 +82,6 @@ const update = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      account_status,
       first_name,
       last_name,
       gender,
@@ -141,7 +114,6 @@ const update = async (req, res) => {
         where: { customer_id: parseInt(id) },
         data: {
           picture,
-          account_status,
           first_name,
           last_name,
           gender,
@@ -156,7 +128,6 @@ const update = async (req, res) => {
       await prisma.customer.update({
         where: { customer_id: parseInt(id) },
         data: {
-          account_status,
           first_name,
           last_name,
           gender,
@@ -172,6 +143,37 @@ const update = async (req, res) => {
     return res.status(200).json(update);
   } catch (err) {
     console.log(err);
+    return res.status(500).json({ error: `Error :${err}` });
+  }
+};
+
+const patch = async (req, res) => {
+  const { id } = req.params;
+  const { type } = req.query;
+
+  try {
+    if (type) {
+      const patch =
+        type == "remove"
+          ? await prisma.customer.update({
+              where: {
+                customer_id: parseInt(id, 10),
+              },
+              data: { status: "disactive" },
+            })
+          : type == "restore"
+          ? await prisma.customer.update({
+              where: {
+                customer_id: parseInt(id, 10),
+              },
+              data: { status: "active" },
+            })
+          : "Type Invalided.";
+
+      return res.status(200).json(patch);
+    }
+    return res.status(400).json({ msg: "Type Undefined." });
+  } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }
 };
@@ -209,10 +211,8 @@ const destroy = async (req, res) => {
 
 module.exports = {
   select,
-  selectID,
-  selectReserve,
-  selectSale,
   create,
   update,
+  patch,
   destroy,
 };

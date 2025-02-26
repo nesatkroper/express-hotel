@@ -15,12 +15,6 @@ enum AccountStatus {
   suspended
 }
 
-enum EmployeeStatus {
-  active
-  pending
-  fired
-}
-
 enum Gender {
   male
   female
@@ -45,6 +39,11 @@ enum PaymentMethod {
   leave
 }
 
+enum Status {
+  active
+  disactive
+}
+
 model Role {
   role_id Int    @id @default(autoincrement())
   name    String @unique
@@ -57,9 +56,9 @@ model Auth {
   email        String   @unique
   password     String
   role_id      Int?
-  status      AccountStatus     @default(active)
   employee_id  Int?     @unique
   customer_id  Int?     @unique
+  status      AccountStatus     @default(active)
   created_at   DateTime @default(now())
 
   role      Role?     @relation(fields: [role_id], references: [role_id])
@@ -80,7 +79,6 @@ model Attendace {
 model Employee {
   employee_id    Int      @id @default(autoincrement())
   employee_code  String?  @unique
-  status EmployeeStatus @default(active)
   first_name     String
   last_name      String
   gender         Gender   @default(male)
@@ -90,6 +88,7 @@ model Employee {
   department_id  Int?
   salary         Decimal  @db.Decimal(10,2)
   hired_date     DateTime?
+  status Status @default(active)
   created_at     DateTime @default(now())
 
   auth      Auth?
@@ -125,6 +124,7 @@ model Department {
   department_name String?
   department_code String?
   memo            String?
+  status     Status    @default(active)
   created_at      DateTime @default(now())
 
   positions Position[]
@@ -137,6 +137,7 @@ model Position {
   position_name String?
   position_code String?
   memo          String?
+  status      Status     @default(active)
   created_at    DateTime @default(now())
 
   department Department @relation(fields: [department_id], references: [department_id])
@@ -145,7 +146,6 @@ model Position {
 
 model Customer {
   customer_id    Int      @id @default(autoincrement())
-  account_status AccountStatus @default(active)
   first_name     String
   last_name      String
   picture        String?
@@ -155,6 +155,7 @@ model Customer {
   address        String?
   city           String?
   state          String?
+  status      Status     @default(active)
   created_at     DateTime @default(now())
 
   auth    Auth?
@@ -190,7 +191,7 @@ model Reservation {
   payment_status  PaymentStatus @default(paid)
   payment_method  PaymentMethod @default(cash)
   memo            String?
-  is_hidden       Boolean @default(false)
+  status      Status     @default(active)
 
   details ReservationDetail[]
   payment   Payment[]
@@ -206,7 +207,7 @@ model Room {
   size          Int      @default(25)
   discount_rate Int      @default(0)
   is_booked     Boolean  @default(false)
-  status        Boolean  @default(true)
+  status      Status     @default(active)
   created_at    DateTime @default(now())
 
   roomtype    RoomType?    @relation(fields: [room_type_id], references: [room_type_id])
@@ -226,7 +227,6 @@ model RoomType {
 model RoomPicture {
   room_picture_id Int      @id @default(autoincrement())
   room_id         Int
-  picture_name    String?
   picture         String
   created_at      DateTime @default(now())
 
@@ -241,7 +241,7 @@ model Product {
   picture           String?  
   price             Decimal  @db.Decimal(10,2)  @default(0.00)
   discount_rate     Int      @default(0)
-  status            Boolean  @default(true)
+  status      Status     @default(active)
   created_at         DateTime @default(now())
 
   category  ProductCategory? @relation(fields: [product_category_id], references: [product_category_id])
@@ -256,6 +256,7 @@ model ProductCategory {
   category_name       String
   category_code       String?
   memo                String?  
+  status      Status     @default(active)
   created_at           DateTime @default(now())
 
   products    Product[]
@@ -290,6 +291,7 @@ model ProductStock {
   add_price        Decimal   @db.Decimal(12,2)  @default(0.00)
   add_date         DateTime?
   memo             String?
+  status      Status     @default(active)
   created_at        DateTime @default(now())
 
   product    Product?     @relation(fields: [product_id], references: [product_id])
@@ -303,6 +305,7 @@ model Supplier {
   phone         String?
   email         String?
   address       String?
+  status      Status     @default(active)
   created_at     DateTime @default(now())
 
   stocks     ProductStock[]
@@ -314,9 +317,8 @@ model Sale {
   room_id       Int?
   customer_id   Int?
   sale_date     DateTime    @default(now())
-  discount_rate Int      @default(0)
-  total         Decimal   @db.Decimal(12,2)
   amount        Decimal   @db.Decimal(12,2)
+  status      Status     @default(active)
   created_at     DateTime @default(now())
 
   room     Room?    @relation(fields: [room_id], references: [room_id])
@@ -340,9 +342,9 @@ model SaleDetail {
 
 model Payment {
   payment_id    Int   @id     @default(autoincrement())
+  employee_id Int 
   sale_id   Int?   
   reservation_id   Int?
-  employee_id Int 
   invoice   String?
   hash  String
   fromAccountId   String
@@ -350,6 +352,7 @@ model Payment {
   currency   String
   amount    Decimal   @db.Decimal(12,2)
   externalRef  String
+  status      Status     @default(active)
   created_at    DateTime  @default(now())
 
   sale   Sale?    @relation(fields: [sale_id], references: [sale_id])
@@ -367,6 +370,7 @@ model Shift {
   close_khmer_riel Decimal?  @db.Decimal(12,2)  @default(0.00)
   close_us_dollar  Decimal?  @db.Decimal(12,2)  @default(0.00)
   close_time      DateTime?   
+  status      Status     @default(active)
   created_at      DateTime @default(now())
 
   banknotes    BankNote[]
@@ -395,6 +399,7 @@ model BankNote {
   us_20        Int? @default(0)
   us_50        Int? @default(0)
   us_100       Int? @default(0)
+  status      Status     @default(active)
   created_at    DateTime @default(now())
 
   shift  Shift   @relation(fields: [shift_id], references: [shift_id])
@@ -409,6 +414,19 @@ model GroupMessage {
 
   employee    Employee?   @relation(fields: [employee_id], references: [employee_id])
 }
+
+// ! Log
+model Log {
+  id         Int      @id @default(autoincrement())
+  method     String
+  url        String
+  status     Int
+  response_time Float
+  ip         String
+  user_agent String?
+  created_at DateTime @default(now())
+}
+
 
 // ! test model
 model Image {

@@ -58,9 +58,6 @@ router.use("/tele-noti", telegramNotificationRouter);
 router.use("/tele-att", telegramAttendanceRouter);
 router.use("/message", groupMessageRouter);
 
-const image = require("@/router/components/image-router");
-router.use("/images", image);
-
 router.get("/rl", (req, res) => {
   res.json(expressListEndpoints(router));
 });

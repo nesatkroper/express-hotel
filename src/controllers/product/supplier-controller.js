@@ -2,16 +2,18 @@ const prisma = require("@/provider/client");
 
 const select = async (req, res) => {
   const { id } = req.params;
-  const { stocks = false } = req.query;
+  const { order = "desc", status = "active", stocks = false } = req.query;
 
   try {
     const select = id
       ? await prisma.supplier.findUnique({
-          where: { supplier_id: parseInt(id) },
+          where: { supplier_id: parseInt(id), status },
           include: { stocks: stocks === "true" },
         })
       : await prisma.supplier.findMany({
+          where: { status },
           include: { stocks: stocks === "true" },
+          orderBy: { supplier_id: order },
         });
 
     if (!select || (Array.isArray(select) && !select.length))
@@ -48,7 +50,7 @@ const update = async (req, res) => {
     const { supplier_name, company_name, phone, email, address } = req.body;
 
     await prisma.supplier.update({
-      where: { supplier_id: parseInt(id) },
+      where: { supplier_id: parseInt(id, 10) },
       data: {
         supplier_name,
         company_name,
@@ -61,6 +63,37 @@ const update = async (req, res) => {
     return res.status(200).json(update);
   } catch (err) {
     console.log(err);
+    return res.status(500).json({ error: `Error :${err}` });
+  }
+};
+
+const patch = async (req, res) => {
+  const { id } = req.params;
+  const { type } = req.query;
+
+  try {
+    if (type) {
+      const patch =
+        type == "remove"
+          ? await prisma.supplier.update({
+              where: {
+                supplier_id: parseInt(id, 10),
+              },
+              data: { status: "disactive" },
+            })
+          : type == "restore"
+          ? await prisma.supplier.update({
+              where: {
+                supplier_id: parseInt(id, 10),
+              },
+              data: { status: "active" },
+            })
+          : "Type Invalided.";
+
+      return res.status(200).json(patch);
+    }
+    return res.status(400).json({ msg: "Type Undefined." });
+  } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }
 };
@@ -79,4 +112,4 @@ const destroy = async (req, res) => {
   }
 };
 
-module.exports = { select, create, update, destroy };
+module.exports = { select, create, update, patch, destroy };

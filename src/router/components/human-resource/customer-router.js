@@ -32,20 +32,16 @@ const upload = multer({
 
 const {
   select,
-  selectSale,
-  selectReserve,
-  selectID,
   create,
   update,
+  patch,
   destroy,
 } = require("@/controllers/homan-resource/customer-controller");
 
-router.get("/", select);
-router.get("/sale", selectSale);
-router.get("/reserve", selectReserve);
-router.get("/:id", selectID);
+router.get("/:id?", select);
 router.post("/", upload.single("picture"), create);
 router.put("/:id", upload.single("picture"), update);
+router.patch("/:id", patch);
 router.delete("/:id", destroy);
 
 module.exports = router;

@@ -28,6 +28,7 @@ const reserveDetailsRouter = require("@/router/components/reservation/reservatio
 const reservationRouter = require("@/router/components/reservation/reservation-router");
 const roomPictureRouter = require("@/router/components/reservation/room-picture-router");
 const roomRouter = require("@/router/components/reservation/room-router");
+const roomTypeRouter = require("@/router/components/reservation/room-type-router");
 
 //! sale
 const saleDetailRouter = require("@/router/components/sale/sale-detail-router");
@@ -59,6 +60,7 @@ module.exports = {
   reserveDetailsRouter,
   roomPictureRouter,
   roomRouter,
+  roomTypeRouter,
   saleRouter,
   saleDetailRouter,
   KHQRRouter,

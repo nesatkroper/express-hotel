@@ -5,12 +5,13 @@
   "type": "commonjs",
   "scripts": {
     "test": "jest",
+    "build": "eslint . --fix && mkdir -p dist && cp -r *.js routes/ controllers/ models/ dist/",
     "dev": "nodemon index.js",
-    "migrate": "npx prisma migrate dev --name add log",
+    "migrate": "npx prisma migrate dev --name add auth-log",
     "dbpush": "npx prisma db push",
     "generate": "npx prisma generate",
     "seed": "npx prisma db seed",
-    "git": "git add . && git commit -m \"add log middleware\" &&   git push && npm run dev",
+    "git": "git add . && git commit -m \"start using base controller\" &&   git push && npm run dev",
     "prisma": "npm run migrate && npm run generate && npm run dev"
   },
   "prisma": {
@@ -49,7 +50,7 @@
   },
   "devDependencies": {
     "@prisma/client": "^6.4.1",
-    "jest": "^29.7.0",
+    "globals": "^16.0.0",
     "nodemon": "^3.1.7",
     "prisma": "^6.4.1"
   },

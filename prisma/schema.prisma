@@ -65,6 +65,7 @@ model Auth {
   employee  Employee? @relation(fields: [employee_id], references: [employee_id])
   customer  Customer? @relation(fields: [customer_id], references: [customer_id])
   cart   Cart[]
+  logs   AuthLog[]
 }
 
 model Attendace {
@@ -425,6 +426,20 @@ model Log {
   ip         String
   user_agent String?
   created_at DateTime @default(now())
+}
+
+model AuthLog {
+  id         Int      @id @default(autoincrement())
+  auth_id  Int
+  method     String
+  url        String
+  status     Int
+  response_time Float
+  ip         String
+  user_agent String?
+  created_at DateTime @default(now())
+
+  auth  Auth   @relation(fields: [auth_id], references: [auth_id])
 }
 
 

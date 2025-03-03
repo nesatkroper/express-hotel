@@ -1,60 +1,26 @@
-const prisma = require("@/provider/client");
+const {
+  baseSelect,
+  baseCreate,
+  baseUpdate,
+  basePatch,
+  baseDestroy,
+} = require("../base/base-controller");
+
+const model = "employee";
+const idField = "employee_id";
+const field = "employee_code";
+const prefix = "EMP";
+const pad = 4;
 
 const select = async (req, res) => {
   const { id } = req.params;
-  const {
-    order = "desc",
-    status = "active",
-    auth = false,
-    position = false,
-    department = false,
-    reservedetails = false,
-    sales = false,
-    shift = false,
-    attendances = false,
-    groupchat = false,
-    payment = false,
-  } = req.query;
-
   try {
-    const select = id
-      ? await prisma.employee.findUnique({
-          where: { employee_id: parseInt(id), status },
-          include: {
-            info: true,
-            auth: auth === "true",
-            position: position === "true",
-            department: department === "true",
-            reservedetails: reservedetails === "true",
-            sales: sales === "true",
-            shift: shift === "true",
-            attendances: attendances === "true",
-            groupchat: groupchat === "true",
-            payment: payment === "true",
-          },
-        })
-      : await prisma.employee.findMany({
-          where: { status },
-          include: {
-            info: true,
-            auth: auth === "true",
-            position: position === "true",
-            department: department === "true",
-            reservedetails: reservedetails === "true",
-            sales: sales === "true",
-            shift: shift === "true",
-            attendances: attendances === "true",
-            groupchat: groupchat === "true",
-            payment: payment === "true",
-          },
-          orderBy: { employee_id: order },
-        });
+    const result = await baseSelect(model, id, req.query, idField);
 
-    if (!select || (Array.isArray(select) && !select.length)) {
+    if (!result || (Array.isArray(result) && !result.length)) {
       return res.status(404).json({ msg: "No data found" });
     }
-
-    return res.status(200).json(select);
+    return res.status(200).json(result);
   } catch (err) {
     console.error("Error:", err);
     return res.status(500).json({ error: `Error: ${err.message}` });
@@ -63,111 +29,40 @@ const select = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const {
-      first_name,
-      last_name,
-      gender,
-      dob,
-      phone,
-      position_id,
-      department_id,
-      salary,
-      hired_date,
-    } = req.body;
+    const data = { ...req.body };
 
-    const last = await prisma.employee.findFirst({
-      orderBy: { employee_id: "desc" },
-    });
-    const cleanphone = phone.startsWith("0") ? phone.slice(1) : phone;
-
-    const create = await prisma.employee.create({
-      data: {
-        employee_code: `EMP-${(last ? last.employee_id + 1 : 1)
-          .toString()
-          .padStart(4, "0")}`,
-        first_name,
-        last_name,
-        gender,
-        dob: dob ? new Date(dob) : null,
-        phone: cleanphone ? `+855${cleanphone}` : null,
-        position_id: position_id ? parseInt(position_id, 10) : null,
-        department_id: department_id ? parseInt(department_id, 10) : null,
-        salary: salary ? parseFloat(salary) : null,
-        hired_date: hired_date ? new Date(hired_date) : null,
+    const result = await baseCreate(
+      model,
+      data,
+      {
+        field,
+        prefix,
+        idField,
       },
-    });
-
-    return res.status(200).json(create);
+      pad
+    );
+    return res.status(200).json(result);
   } catch (err) {
-    console.error("Error creating employee:", err);
+    console.error(`Error creating ${model}:`, err);
     return res.status(500).json({ error: `Error :${err}` });
   }
 };
 
 const update = async (req, res) => {
   try {
-    const { id } = req.params;
-    const {
-      first_name,
-      last_name,
-      gender,
-      dob,
-      phone,
-      position_id,
-      department_id,
-      salary,
-      hired_date,
-    } = req.body;
+    const result = await baseUpdate(model, req.params.id, req.body);
 
-    const update = await prisma.employee.update({
-      where: { employee_id: parseInt(id) },
-      data: {
-        first_name,
-        last_name,
-        gender,
-        dob: new Date(dob),
-        phone,
-        position_id: parseInt(position_id, 10),
-        department_id: parseInt(department_id, 10),
-        salary: parseFloat(salary),
-        hired_date: new Date(hired_date),
-      },
-    });
-
-    console.log(update);
-    return res.status(200).json(update);
+    return res.status(200).json(result);
   } catch (err) {
-    console.log(err);
-    return res.status(500).json({ error: `Error :${err}` });
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 
 const patch = async (req, res) => {
-  const { id } = req.params;
-  const { type } = req.query;
-
   try {
-    if (type) {
-      const patch =
-        type == "remove"
-          ? await prisma.employee.update({
-              where: {
-                employee_id: parseInt(id, 10),
-              },
-              data: { status: "disactive" },
-            })
-          : type == "restore"
-          ? await prisma.employee.update({
-              where: {
-                employee_id: parseInt(id, 10),
-              },
-              data: { status: "active" },
-            })
-          : "Type Invalided.";
+    const result = await basePatch(model, req.params.id, req.query.type);
 
-      return res.status(200).json(patch);
-    }
-    return res.status(400).json({ msg: "Type Undefined." });
+    return res.status(200).json(result);
   } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }
@@ -175,21 +70,10 @@ const patch = async (req, res) => {
 
 const destroy = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    const category = await prisma.employee.findUnique({
-      where: { employee_id: parseInt(id, 10) },
-    });
-
-    if (!category) return res.status(404).json({ error: " not found" });
-
-    const destroy = await prisma.employee.delete({
-      where: { employee_id: parseInt(id) },
-    });
-
-    return res.status(200).json(destroy);
+    const result = await baseDestroy(model, req.params.id);
+    return res.status(200).json(result);
   } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 

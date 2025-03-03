@@ -55,13 +55,13 @@ const create = async (req, res) => {
 
     const create = await prisma.room.create({
       data: {
-        room_type_id,
+        room_type_id: parseInt(room_type_id, 10),
         room_name: `ROOM-${room_name}`,
         price,
         is_ac,
-        capacity,
-        size,
-        discount_rate,
+        capacity: parseInt(capacity, 10),
+        size: parseInt(size, 10),
+        discount_rate: parseInt(discount_rate, 10),
         is_booked,
       },
     });

@@ -23,6 +23,7 @@ const {
   reserveDetailsRouter,
   roomPictureRouter,
   roomRouter,
+  roomTypeRouter,
   saleRouter,
   saleDetailRouter,
   KHQRRouter,
@@ -50,6 +51,7 @@ router.use("/stock", stockRouter);
 router.use("/reservation", reservationRouter);
 router.use("/reserve-details", reserveDetailsRouter);
 router.use("/room", roomRouter);
+router.use("/roomtype", roomTypeRouter);
 router.use("/room-picture", roomPictureRouter);
 router.use("/sale-detail", saleDetailRouter);
 router.use("/sale", saleRouter);

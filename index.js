@@ -14,7 +14,8 @@ const { Server } = require("socket.io");
 const {
   setupSocket,
 } = require("@/controllers/realtime/setup-socket-controller");
-const dbLogger = require("@/middleware/logger");
+const dbLogger = require("@/middleware/logger-middleware");
+const authLogger = require("@/middleware/auth-logger-middleware");
 
 const app = express();
 const server = http.createServer(app);
@@ -37,6 +38,7 @@ app.use((err, req, res, next) => {
 });
 
 app.use(dbLogger);
+app.use(authLogger);
 
 app.use(
   cors({

@@ -1,135 +1,77 @@
-const prisma = require("@/provider/client");
 const path = require("path");
-const fs = require("fs");
+const { uploadPath } = require("@/provider/upload-path");
+const {
+  baseSelect,
+  baseCreate,
+  baseUpdate,
+  basePatch,
+  baseDestroy,
+} = require("../base/base-controller");
+
+const model = "category";
+const idField = "category_id";
+const field = "category_code";
+const prefix = "CAT";
+const pad = 4;
 
 const select = async (req, res) => {
   const { id } = req.params;
-  const { order = "desc", status = "active", products = false } = req.query;
-
   try {
-    const result = id
-      ? await prisma.productCategory.findUnique({
-          where: { product_category_id: parseInt(id), status },
-          include: { products: products === "true" },
-        })
-      : await prisma.productCategory.findMany({
-          where: { status },
-          include: { products: products === "true" },
-          orderBy: { product_category_id: order },
-        });
+    const result = await baseSelect(model, id, req.query, idField);
 
     if (!result || (Array.isArray(result) && !result.length)) {
-      return res.status(400).json({ msg: "no data" });
+      return res.status(404).json({ msg: "No data found" });
     }
-
     return res.status(200).json(result);
   } catch (err) {
-    return res.status(500).json({ error: `Error: ${err}` });
+    console.error("Error:", err);
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 
 const create = async (req, res) => {
   try {
-    const { category_name, memo } = req.body;
     const picture = req.file ? path.basename(req.file.path) : null;
+    const data = { ...req.body, picture };
 
-    const last = prisma.category.findFirst({
-      orderBy: { product_category_id: "desc" },
-    });
-
-    const create = await prisma.productCategory.create({
-      data: {
-        picture,
-        category_name,
-        category_code: `CAT-${(last ? last.product_category_id + 1 : 1)
-          .toString()
-          .padStart(3, "0")}`,
-        memo,
+    const result = await baseCreate(
+      model,
+      data,
+      {
+        field,
+        prefix,
+        idField,
       },
-    });
-    console.log(create);
-    return res.status(200).json(create);
+      pad
+    );
+    return res.status(200).json(result);
   } catch (err) {
-    console.log(err);
-    return res.status(500).json({ error: `Error :${err}`, response: req });
+    console.error(`Error creating ${model}:`, err);
+    return res.status(500).json({ error: `Error :${err}` });
   }
 };
 
 const update = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { category_name, category_code, memo } = req.body;
-    const picture = req.file ? path.basename(req.file.path) : null;
+    const result = await baseUpdate(
+      model,
+      req.params.id,
+      req.body,
+      req.file,
+      uploadPath
+    );
 
-    const category = await prisma.productCategory.findUnique({
-      where: { product_category_id: parseInt(id, 10) },
-    });
-
-    if (picture !== null) {
-      const imagePath = path.join(
-        __dirname,
-        "../../public/uploads/category",
-        category.picture
-      );
-
-      fs.unlink(imagePath, (err) => {
-        if (err) console.log(`Error deleting file: ${err}`);
-        else console.log(`Removed image file: ${imagePath}`);
-      });
-
-      await prisma.productCategory.update({
-        where: { product_category_id: parseInt(id) },
-        data: {
-          category_name,
-          category_code,
-          memo,
-          picture,
-        },
-      });
-    } else {
-      await prisma.productCategory.update({
-        where: { product_category_id: parseInt(id) },
-        data: {
-          category_name,
-          category_code,
-          memo,
-        },
-      });
-    }
-    console.log(update);
-    return res.status(200).json(update);
+    return res.status(200).json(result);
   } catch (err) {
-    console.log(err);
-    return res.status(500).json({ error: `Error :${err}` });
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 
 const patch = async (req, res) => {
-  const { id } = req.params;
-  const { type } = req.query;
-
   try {
-    if (type) {
-      const patch =
-        type == "remove"
-          ? await prisma.productCategory.update({
-              where: {
-                product_category_id: parseInt(id, 10),
-              },
-              data: { status: "disactive" },
-            })
-          : type == "restore"
-          ? await prisma.productCategory.update({
-              where: {
-                product_category_id: parseInt(id, 10),
-              },
-              data: { status: "active" },
-            })
-          : "Type Invalided.";
+    const result = await basePatch(model, req.params.id, req.query.type);
 
-      return res.status(200).json(patch);
-    }
-    return res.status(400).json({ msg: "Type Undefined." });
+    return res.status(200).json(result);
   } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }
@@ -137,33 +79,17 @@ const patch = async (req, res) => {
 
 const destroy = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    const category = await prisma.productCategory.findUnique({
-      where: { product_category_id: parseInt(id, 10) },
-    });
-
-    if (!category) return res.status(404).json({ error: "Category not found" });
-
-    const destroy = await prisma.productCategory.delete({
-      where: { product_category_id: parseInt(id) },
-    });
-
-    const imagePath = path.join(
-      __dirname,
-      "../../public/uploads/category",
-      category.picture
-    );
-
-    fs.unlink(imagePath, (err) => {
-      if (err) console.log(`Error deleting file: ${err}`);
-      else console.log(`Removed image file: ${imagePath}`);
-    });
-
-    return res.status(200).json(destroy);
+    const result = await baseDestroy(model, req.params.id);
+    return res.status(200).json(result);
   } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 
-module.exports = { select, create, update, patch, destroy };
+module.exports = {
+  select,
+  create,
+  update,
+  patch,
+  destroy,
+};

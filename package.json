@@ -7,7 +7,7 @@
     "test": "jest",
     "build": "eslint . --fix && mkdir -p dist && cp -r *.js routes/ controllers/ models/ dist/",
     "dev": "nodemon index.js",
-    "migrate": "npx prisma migrate dev --name add auth-log",
+    "migrate": "npx prisma migrate dev --name modify product category",
     "dbpush": "npx prisma db push",
     "generate": "npx prisma generate",
     "seed": "npx prisma db seed",

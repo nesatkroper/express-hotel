@@ -238,21 +238,21 @@ model Product {
   product_id        Int      @id @default(autoincrement())
   product_name      String
   product_code      String?  
-  product_category_id Int?
+  category_id Int?
   picture           String?  
   price             Decimal  @db.Decimal(10,2)  @default(0.00)
   discount_rate     Int      @default(0)
   status      Status     @default(active)
   created_at         DateTime @default(now())
 
-  category  ProductCategory? @relation(fields: [product_category_id], references: [product_category_id])
+  category  Category? @relation(fields: [category_id], references: [category_id])
   stocks    ProductStock[]
   saledetails      SaleDetail[]
   cart   Cart[]
 }
 
-model ProductCategory {
-  product_category_id Int      @id @default(autoincrement())
+model Category {
+  category_id Int      @id @default(autoincrement())
   picture             String?  
   category_name       String
   category_code       String?

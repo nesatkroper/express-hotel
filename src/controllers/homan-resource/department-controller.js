@@ -1,126 +1,89 @@
-const prisma = require("@/provider/client");
+const {
+  baseSelect,
+  baseCreate,
+  baseUpdate,
+  basePatch,
+  baseDestroy,
+} = require("../base/base-controller");
+
+const model = "department";
+const field = "department_code";
+const prefix = "DEP";
+const pad = 4;
 
 const select = async (req, res) => {
-  const { id } = req.params;
-  const {
-    order = "desc",
-    status = "active",
-    positions = false,
-    employees = false,
-  } = req.query;
   try {
-    const select = id
-      ? await prisma.department.findUnique({
-          where: { department_id: parseInt(id), status },
-          include: {
-            positions: positions === "true",
-            employees: employees === "true",
-          },
-        })
-      : await prisma.department.findMany({
-          where: { status },
-          include: {
-            positions: positions === "true",
-            employees: employees === "true",
-          },
-          orderBy: { department_id: order },
-        });
+    const result = await baseSelect(
+      model,
+      req.params.id,
+      req.query,
+      `${model}_id`
+    );
 
-    if (!select || (Array.isArray(select) && !select.length))
-      return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(select);
+    if (!result || (Array.isArray(result) && !result.length)) {
+      return res.status(404).json({ msg: "No data found" });
+    }
+    return res.status(200).json(result);
   } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
+    console.error("Error:", err);
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 
 const create = async (req, res) => {
   try {
-    const { department_name, memo } = req.body;
+    const data = { ...req.body };
 
-    const last = await prisma.department.findFirst({
-      orderBy: { department_id: "desc" },
-    });
-
-    const create = await prisma.department.create({
-      data: {
-        department_name,
-        department_code: `DEP-${(last ? last.department_id + 1 : 1)
-          .toString()
-          .padStart(3, "0")}`,
-        memo,
+    const result = await baseCreate(
+      model,
+      data,
+      {
+        field,
+        prefix,
+        idField: `${model}_id`,
       },
-    });
-
-    return res.status(200).json(create);
+      pad
+    );
+    return res.status(200).json(result);
   } catch (err) {
+    console.error(`Error creating ${model}:`, err);
     return res.status(500).json({ error: `Error :${err}` });
   }
 };
 
 const update = async (req, res) => {
-  const { id } = req.params;
-  const { department_name, memo } = req.body;
-
   try {
-    const update = await prisma.department.update({
-      where: { department_id: parseInt(id) },
-      data: {
-        department_name,
-        memo,
-      },
-    });
-    console.log(update);
-    return res.status(200).json(update);
+    const result = await baseUpdate(model, req.params.id, req.body);
+
+    return res.status(200).json(result);
   } catch (err) {
-    console.log(err);
-    return res.status(500).json({ error: `Error :${err}` });
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 
 const patch = async (req, res) => {
-  const { id } = req.params;
-  const { type } = req.query;
-
   try {
-    if (type) {
-      const patch =
-        type == "remove"
-          ? await prisma.department.update({
-              where: {
-                department_id: parseInt(id, 10),
-              },
-              data: { status: "disactive" },
-            })
-          : type == "restore"
-          ? await prisma.department.update({
-              where: {
-                department_id: parseInt(id, 10),
-              },
-              data: { status: "active" },
-            })
-          : "Type Invalided.";
+    const result = await basePatch(model, req.params.id, req.query.type);
 
-      return res.status(200).json(patch);
-    }
-    return res.status(400).json({ msg: "Type Undefined." });
+    return res.status(200).json(result);
   } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }
 };
 
 const destroy = async (req, res) => {
-  const { id } = req.params;
-
   try {
-    const destroy = await prisma.department.delete({
-      where: { department_id: parseInt(id) },
-    });
-    console.log(destroy);
-    return res.status(200).json(destroy);
+    const result = await baseDestroy(model, req.params.id);
+    return res.status(200).json(result);
   } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 
-module.exports = { select, create, update, patch, destroy };
+module.exports = {
+  select,
+  create,
+  update,
+  patch,
+  destroy,
+};

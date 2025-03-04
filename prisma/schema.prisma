@@ -68,8 +68,8 @@ model Auth {
   logs   AuthLog[]
 }
 
-model Attendace {
-  attendace_id Int @id @default(autoincrement())
+model Attendance {
+  attendance_id Int @id @default(autoincrement())
   employee_id Int
   datetime DateTime @default(now())
   note String?
@@ -93,19 +93,19 @@ model Employee {
   created_at     DateTime @default(now())
 
   auth      Auth?
-  info      EmployeeInfo?
+  info      Employeeinfo?
   position  Position? @relation(fields: [position_id], references: [position_id])
   department Department? @relation(fields: [department_id], references: [department_id])
-  reservedetails   ReservationDetail[]
+  reservedetails   Reservedetail[]
   sales    Sale[]
   shift     Shift[]
-  attendances Attendace[]
-  groupchat   GroupMessage[]
+  attendances Attendance[]
+  groupchat   Groupmessage[]
   payment  Payment[]
 }
 
-model EmployeeInfo  {
-  info_id     Int     @id @default(autoincrement()) 
+model Employeeinfo  {
+  employeeinfo_id     Int     @id @default(autoincrement()) 
   employee_id    Int      @unique
   picture        String?
   region      String?
@@ -160,12 +160,12 @@ model Customer {
   created_at     DateTime @default(now())
 
   auth    Auth?
-  reservedetails ReservationDetail[]
+  reservedetails Reservedetail[]
   sales    Sale[]
 }
 
-model ReservationDetail {
-  reserve_detail_id Int    @id @default(autoincrement())
+model Reservedetail {
+  reservedetail_id Int    @id @default(autoincrement())
   room_id           Int
   employee_id       Int
   customer_id       Int?
@@ -194,13 +194,13 @@ model Reservation {
   memo            String?
   status      Status     @default(active)
 
-  details ReservationDetail[]
+  details Reservedetail[]
   payment   Payment[]
 }
 
 model Room {
   room_id       Int      @id @default(autoincrement())
-  room_type_id     Int?
+  roomtype_id     Int?
   room_name     String?
   price         Decimal  @db.Decimal(10,2)
   is_ac         Boolean  @default(true)
@@ -211,22 +211,22 @@ model Room {
   status      Status     @default(active)
   created_at    DateTime @default(now())
 
-  roomtype    RoomType?    @relation(fields: [room_type_id], references: [room_type_id])
-  pictures RoomPicture[]
-  reservedetails  ReservationDetail[]
+  roomtype    Roomtype?    @relation(fields: [roomtype_id], references: [roomtype_id])
+  pictures Roompicture[]
+  reservedetails  Reservedetail[]
   sales    Sale[]
 }
 
-model RoomType {
-  room_type_id      Int    @id    @default(autoincrement())
+model Roomtype {
+  roomtype_id      Int    @id    @default(autoincrement())
   type_name     String    @unique
   type_code     String    @unique
 
   rooms   Room[]
 }
 
-model RoomPicture {
-  room_picture_id Int      @id @default(autoincrement())
+model Roompicture {
+  roompicture_id Int      @id @default(autoincrement())
   room_id         Int
   picture         String
   created_at      DateTime @default(now())
@@ -246,8 +246,8 @@ model Product {
   created_at         DateTime @default(now())
 
   category  Category? @relation(fields: [category_id], references: [category_id])
-  stocks    ProductStock[]
-  saledetails      SaleDetail[]
+  stocks    Productstock[]
+  saledetails      Saledetail[]
   cart   Cart[]
 }
 
@@ -272,19 +272,19 @@ model Cart {
 
   product   Product  @relation(fields: [product_id], references: [product_id])
   auth   Auth  @relation(fields: [auth_id], references: [auth_id])
-  note  CartNote[]
+  note  Cartnote[]
 }
 
-model CartNote {
-  note_id   Int   @id    @default(autoincrement())
+model Cartnote {
+  cartnote_id   Int   @id    @default(autoincrement())
   cart_id   Int
   note   String
 
   cart  Cart   @relation(fields: [cart_id], references: [cart_id])
 }
 
-model ProductStock {
-  product_stock_id Int      @id @default(autoincrement())
+model Productstock {
+  productstock_id Int      @id @default(autoincrement())
   product_id       Int?
   supplier_id      Int?
   inv_number       String?
@@ -309,7 +309,7 @@ model Supplier {
   status      Status     @default(active)
   created_at     DateTime @default(now())
 
-  stocks     ProductStock[]
+  stocks     Productstock[]
 }
 
 model Sale {
@@ -325,12 +325,12 @@ model Sale {
   room     Room?    @relation(fields: [room_id], references: [room_id])
   employee    Employee      @relation(fields: [employee_id], references: [employee_id])
   customer    Customer?   @relation(fields: [customer_id], references: [customer_id])
-  saledetails     SaleDetail[]
+  saledetails     Saledetail[]
   payment   Payment[]
 }
 
-model SaleDetail {
-  sale_detail_id Int      @id @default(autoincrement())
+model Saledetail {
+  saledetail_id Int      @id @default(autoincrement())
   sale_id        Int
   product_id     Int
   quantity       Int
@@ -374,13 +374,13 @@ model Shift {
   status      Status     @default(active)
   created_at      DateTime @default(now())
 
-  banknotes    BankNote[]
+  banknotes    Banknote[]
   employee    Employee?   @relation(fields: [employee_id], references: [employee_id])
 }
 
 
-model BankNote {
-  bank_note_id Int @id @default(autoincrement())
+model Banknote {
+  banknote_id Int @id @default(autoincrement())
   shift_id    Int
   khmer_100    Int? @default(0)
   khmer_500    Int? @default(0)
@@ -406,8 +406,8 @@ model BankNote {
   shift  Shift   @relation(fields: [shift_id], references: [shift_id])
 }
 
-model GroupMessage {
-  group_message_id     Int @id @default(autoincrement())
+model Groupmessage {
+  groupmessage_id     Int @id @default(autoincrement())
   employee_id   Int? 
   content  String
   time  DateTime

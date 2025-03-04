@@ -1,25 +1,18 @@
 const prisma = require("@/provider/client");
+const model = "cart";
 
 const select = async (req, res) => {
-  const { auth_id } = req.params;
   try {
-    let select;
+    const result = await baseSelect(
+      model,
+      req.params.auth_id,
+      req.query,
+      `${model}_id`
+    );
 
-    if (!auth_id)
-      select = await prisma.cart.findMany({
-        include: { product: true, note: true },
-      });
-    else
-      select = await prisma.cart.findMany({
-        where: {
-          auth_id: parseInt(auth_id, 10),
-        },
-        include: { product: true, note: true },
-      });
-
-    if (!select || (Array.isArray(select) && !select.length))
+    if (!result || (Array.isArray(result) && !result.length))
       return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(select);
+    return res.status(200).json(result);
   } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }

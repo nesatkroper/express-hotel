@@ -1,139 +1,71 @@
-const prisma = require("@/provider/client");
+const {
+  baseSelect,
+  baseCreate,
+  baseUpdate,
+  basePatch,
+  baseDestroy,
+} = require("../base/base-controller");
+
+const model = "room";
+const field = "room_name";
+const prefix = "ROOM";
+const pad = 4;
 
 const select = async (req, res) => {
-  const { id } = req.params;
-  const {
-    order = "desc",
-    status = "active",
-    roomtype = false,
-    pictures = false,
-    reservedetails = false,
-    sales = false,
-  } = req.query;
   try {
-    const select = id
-      ? await prisma.room.findUnique({
-          where: { room_id: parseInt(id), status },
-          include: {
-            roomtype: roomtype === "true",
-            pictures: pictures === "true",
-            reservedetails: reservedetails === "true",
-            sales: sales === "true",
-          },
-        })
-      : await prisma.room.findMany({
-          where: { status },
-          include: {
-            roomtype: roomtype === "true",
-            pictures: pictures === "true",
-            reservedetails: reservedetails === "true",
-            sales: sales === "true",
-          },
-          orderBy: { room_id: order },
-        });
+    const result = await baseSelect(
+      model,
+      req.params.id,
+      req.query,
+      `${model}_id`
+    );
 
-    if (!select || (Array.isArray(select) && !select.length))
-      return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(select);
+    if (!result || (Array.isArray(result) && !result.length)) {
+      return res.status(404).json({ msg: "No data found" });
+    }
+    return res.status(200).json(result);
   } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
+    console.error("Error:", err);
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 
 const create = async (req, res) => {
   try {
-    const {
-      room_type_id,
-      room_name,
-      price,
-      is_ac,
-      capacity,
-      size,
-      discount_rate,
-      is_booked,
-    } = req.body;
+    const data = { ...req.body };
 
-    const create = await prisma.room.create({
-      data: {
-        room_type_id: parseInt(room_type_id, 10),
-        room_name: `ROOM-${room_name}`,
-        price,
-        is_ac,
-        capacity: parseInt(capacity, 10),
-        size: parseInt(size, 10),
-        discount_rate: parseInt(discount_rate, 10),
-        is_booked,
+    const result = await baseCreate(
+      model,
+      data,
+      {
+        field,
+        prefix,
+        idField: `${model}_id`,
       },
-    });
-
-    return res.status(200).json(create);
+      pad
+    );
+    return res.status(200).json(result);
   } catch (err) {
+    console.error(`Error creating ${model}:`, err);
     return res.status(500).json({ error: `Error :${err}` });
   }
 };
 
 const update = async (req, res) => {
   try {
-    const { id } = req.params;
-    const {
-      room_type_id,
-      room_name,
-      price,
-      is_ac,
-      capacity,
-      size,
-      discount_rate,
-      is_booked,
-    } = req.body;
+    const result = await baseUpdate(model, req.params.id, req.body);
 
-    const update = await prisma.room.update({
-      where: { room_id: parseInt(id) },
-      data: {
-        room_type_id,
-        room_name,
-        price,
-        is_ac,
-        capacity,
-        size,
-        discount_rate,
-        is_booked,
-      },
-    });
-
-    console.log(update);
-    return res.status(200).json(update);
+    return res.status(200).json(result);
   } catch (err) {
-    console.log(err);
-    return res.status(500).json({ error: `Error :${err}` });
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 
 const patch = async (req, res) => {
-  const { id } = req.params;
-  const { type } = req.query;
-
   try {
-    if (type) {
-      const patch =
-        type == "remove"
-          ? await prisma.room.update({
-              where: {
-                room_id: parseInt(id, 10),
-              },
-              data: { status: "disactive" },
-            })
-          : type == "restore"
-          ? await prisma.room.update({
-              where: {
-                room_id: parseInt(id, 10),
-              },
-              data: { status: "active" },
-            })
-          : "Type Invalided.";
+    const result = await basePatch(model, req.params.id, req.query.type);
 
-      return res.status(200).json(patch);
-    }
-    return res.status(400).json({ msg: "Type Undefined." });
+    return res.status(200).json(result);
   } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }
@@ -141,16 +73,17 @@ const patch = async (req, res) => {
 
 const destroy = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    const destroy = await prisma.room.delete({
-      where: { room_id: parseInt(id) },
-    });
-
-    return res.status(200).json(destroy);
+    const result = await baseDestroy(model, req.params.id);
+    return res.status(200).json(result);
   } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 
-module.exports = { select, create, update, patch, destroy };
+module.exports = {
+  select,
+  create,
+  update,
+  patch,
+  destroy,
+};

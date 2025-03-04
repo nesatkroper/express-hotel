@@ -1,107 +1,79 @@
-const prisma = require("@/provider/client");
+const { uploadPath } = require("@/provider/upload-path");
+
+const {
+  baseSelect,
+  baseCreate,
+  baseUpdate,
+  basePatch,
+  baseDestroy,
+} = require("../base/base-controller");
+
+const model = "productstock";
 
 const select = async (req, res) => {
-  const { id } = req.params;
-  const { product = false, supplier = false } = req.query;
   try {
-    const select = id
-      ? await prisma.productStock.findUnique({
-          where: { product_stock_id: parseInt(id) },
-          include: {
-            product: product === "true",
-            supplier: supplier === "true",
-          },
-        })
-      : await prisma.productStock.findMany({
-          include: {
-            product: product === "true",
-            supplier: supplier === "true",
-          },
-        });
+    const result = await baseSelect(
+      model,
+      req.params.id,
+      req.query,
+      `${model}_id`
+    );
 
-    if (!select || (Array.isArray(select) && !select.length))
-      return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(select);
+    if (!result || (Array.isArray(result) && !result.length)) {
+      return res.status(404).json({ msg: "No data found" });
+    }
+    return res.status(200).json(result);
   } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
+    console.error("Error:", err);
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 
 const create = async (req, res) => {
   try {
-    const {
-      product_id,
-      supplier_id,
-      inv_number,
-      product_add,
-      add_price,
-      add_date,
-      memo,
-    } = req.body;
+    const data = { ...req.body };
 
-    const create = await prisma.productStock.create({
-      data: {
-        product_id,
-        supplier_id,
-        inv_number,
-        product_add,
-        add_price,
-        add_date: new Date(add_date),
-        memo,
-      },
-    });
-
-    return res.status(200).json(create);
+    const result = await baseCreate(model, data);
+    return res.status(200).json(result);
   } catch (err) {
+    console.error(`Error creating ${model}:`, err);
     return res.status(500).json({ error: `Error :${err}` });
   }
 };
 
 const update = async (req, res) => {
   try {
-    const { id } = req.params;
-    const {
-      product_id,
-      supplier_id,
-      inv_number,
-      product_add,
-      add_price,
-      add_date,
-      memo,
-    } = req.body;
+    const result = await baseUpdate(model, req.params.id, req.body);
 
-    await prisma.productStock.update({
-      where: { product_stock_id: parseInt(id) },
-      data: {
-        product_id,
-        supplier_id,
-        inv_number,
-        product_add,
-        add_price,
-        add_date,
-        memo,
-      },
-    });
-
-    return res.status(200).json(update);
+    return res.status(200).json(result);
   } catch (err) {
-    console.log(err);
+    return res.status(500).json({ error: `Error: ${err.message}` });
+  }
+};
+
+const patch = async (req, res) => {
+  try {
+    const result = await basePatch(model, req.params.id, req.query.type);
+
+    return res.status(200).json(result);
+  } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }
 };
 
 const destroy = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    const destroy = await prisma.productStock.delete({
-      where: { product_stock_id: parseInt(id) },
-    });
-
-    return res.status(200).json(destroy);
+    const result = await baseDestroy(model, req.params.id);
+    return res.status(200).json(result);
   } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 
-module.exports = { select, create, update, destroy };
+module.exports = {
+  select,
+  create,
+  update,
+  patch,
+  destroy,
+};

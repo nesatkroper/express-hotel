@@ -1,149 +1,77 @@
-const prisma = require("@/provider/client");
+const {
+  baseSelect,
+  baseCreate,
+  baseUpdate,
+  basePatch,
+  baseDestroy,
+} = require("../base/base-controller");
+
+const model = "banknote";
 
 const select = async (req, res) => {
-  const { id } = req.params;
-  const { shift = false } = req.query;
   try {
-    const select = id
-      ? await prisma.bankNote.findUnique({
-          where: { bank_note_id: parseInt(id) },
-          include: { shift: shift === "true" },
-        })
-      : await prisma.bankNote.findMany({
-          include: { shift: shift === "true" },
-        });
+    const result = await baseSelect(
+      model,
+      req.params.id,
+      req.query,
+      `${model}_id`
+    );
 
-    if (!select || (Array.isArray(select) && !select.length))
-      return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(select);
+    if (!result || (Array.isArray(result) && !result.length)) {
+      return res.status(404).json({ msg: "No data found" });
+    }
+    return res.status(200).json(result);
   } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
+    console.error("Error:", err);
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 
 const create = async (req, res) => {
   try {
-    const {
-      shift_id,
-      khmer_100,
-      khmer_500,
-      khmer_1K,
-      khmer_2K,
-      khmer_5K,
-      khmer_10K,
-      khmer_15K,
-      khmer_20K,
-      khmer_30K,
-      khmer_50K,
-      khmer_100K,
-      khmer_200K,
-      us_1,
-      us_5,
-      us_10,
-      us_20,
-      us_50,
-      us_100,
-    } = req.body;
+    const data = { ...req.body };
 
-    const create = await prisma.bankNote.create({
-      data: {
-        shift_id,
-        khmer_100,
-        khmer_500,
-        khmer_1K,
-        khmer_2K,
-        khmer_5K,
-        khmer_10K,
-        khmer_15K,
-        khmer_20K,
-        khmer_30K,
-        khmer_50K,
-        khmer_100K,
-        khmer_200K,
-        us_1,
-        us_5,
-        us_10,
-        us_20,
-        us_50,
-        us_100,
-      },
-    });
-
-    return res.status(200).json(create);
+    const result = await baseCreate(model, data);
+    return res.status(200).json(result);
   } catch (err) {
+    console.error(`Error creating ${model}:`, err);
     return res.status(500).json({ error: `Error :${err}` });
   }
 };
 
 const update = async (req, res) => {
   try {
-    const { id } = req.params;
-    const {
-      shift_id,
-      khmer_100,
-      khmer_500,
-      khmer_1K,
-      khmer_2K,
-      khmer_5K,
-      khmer_10K,
-      khmer_15K,
-      khmer_20K,
-      khmer_30K,
-      khmer_50K,
-      khmer_100K,
-      khmer_200K,
-      us_1,
-      us_5,
-      us_10,
-      us_20,
-      us_50,
-      us_100,
-    } = req.body;
+    const result = await baseUpdate(model, req.params.id, req.body);
 
-    await prisma.bankNote.update({
-      where: { bank_note_id: parseInt(id) },
-      data: {
-        shift_id,
-        khmer_100,
-        khmer_500,
-        khmer_1K,
-        khmer_2K,
-        khmer_5K,
-        khmer_10K,
-        khmer_15K,
-        khmer_20K,
-        khmer_30K,
-        khmer_50K,
-        khmer_100K,
-        khmer_200K,
-        us_1,
-        us_5,
-        us_10,
-        us_20,
-        us_50,
-        us_100,
-      },
-    });
-
-    return res.status(200).json(update);
+    return res.status(200).json(result);
   } catch (err) {
-    console.log(err);
+    return res.status(500).json({ error: `Error: ${err.message}` });
+  }
+};
+
+const patch = async (req, res) => {
+  try {
+    const result = await basePatch(model, req.params.id, req.query.type);
+
+    return res.status(200).json(result);
+  } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }
 };
 
 const destroy = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    const destroy = await prisma.bankNote.delete({
-      where: { bank_note_id: parseInt(id) },
-    });
-
-    return res.status(200).json(destroy);
+    const result = await baseDestroy(model, req.params.id);
+    return res.status(200).json(result);
   } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 
-module.exports = { select, create, update, destroy };
+module.exports = {
+  select,
+  create,
+  update,
+  patch,
+  destroy,
+};

@@ -9,15 +9,18 @@ const {
 } = require("../base/base-controller");
 
 const model = "category";
-const idField = "category_id";
 const field = "category_code";
 const prefix = "CAT";
 const pad = 4;
 
 const select = async (req, res) => {
-  const { id } = req.params;
   try {
-    const result = await baseSelect(model, id, req.query, idField);
+    const result = await baseSelect(
+      model,
+      req.params.id,
+      req.query,
+      `${model}_id`
+    );
 
     if (!result || (Array.isArray(result) && !result.length)) {
       return res.status(404).json({ msg: "No data found" });
@@ -40,7 +43,7 @@ const create = async (req, res) => {
       {
         field,
         prefix,
-        idField,
+        idField: `${model}_id`,
       },
       pad
     );

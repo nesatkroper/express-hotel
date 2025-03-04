@@ -1,118 +1,77 @@
-const prisma = require("@/provider/client");
+const {
+  baseSelect,
+  baseCreate,
+  baseUpdate,
+  basePatch,
+  baseDestroy,
+} = require("../base/base-controller");
+
+const model = "reservedetail";
 
 const select = async (req, res) => {
-  const { id } = req.params;
-  const {
-    room = false,
-    employee = false,
-    customer = false,
-    reservation = false,
-  } = req.query;
   try {
-    const select = id
-      ? await prisma.reservationDetail.findUnique({
-          where: { reserve_detail_id: parseInt(id) },
-          include: {
-            room: room === "true",
-            employee: employee === "true",
-            customer: customer === "true",
-            reservation: reservation === "true",
-          },
-        })
-      : await prisma.reservationDetail.findMany({
-          include: {
-            room: room === "true",
-            employee: employee === "true",
-            customer: customer === "true",
-            reservation: reservation === "true",
-          },
-        });
+    const result = await baseSelect(
+      model,
+      req.params.id,
+      req.query,
+      `${model}_id`
+    );
 
-    if (!select || (Array.isArray(select) && !select.length))
-      return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(select);
+    if (!result || (Array.isArray(result) && !result.length)) {
+      return res.status(404).json({ msg: "No data found" });
+    }
+    return res.status(200).json(result);
   } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
+    console.error("Error:", err);
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 
 const create = async (req, res) => {
   try {
-    const {
-      room_id,
-      employee_id,
-      customer_id,
-      reservation_id,
-      price,
-      night,
-      amount,
-    } = req.body;
+    const data = { ...req.body };
 
-    // const code = `INV-SR-${employee_code.toString().padStart(4, "0")}`;
-
-    const create = await prisma.reservationDetail.create({
-      data: {
-        room_id,
-        employee_id,
-        customer_id,
-        reservation_id,
-        price,
-        night,
-        amount,
-      },
-    });
-
-    return res.status(200).json(create);
+    const result = await baseCreate(model, data);
+    return res.status(200).json(result);
   } catch (err) {
+    console.error(`Error creating ${model}:`, err);
     return res.status(500).json({ error: `Error :${err}` });
   }
 };
 
 const update = async (req, res) => {
   try {
-    const { id } = req.params;
-    const {
-      room_id,
-      employee_id,
-      customer_id,
-      reservation_id,
-      price,
-      night,
-      amount,
-    } = req.body;
+    const result = await baseUpdate(model, req.params.id, req.body);
 
-    await prisma.reservationDetail.update({
-      where: { reserve_detail_id: parseInt(id) },
-      data: {
-        room_id,
-        employee_id,
-        customer_id,
-        reservation_id,
-        price,
-        night,
-        amount,
-      },
-    });
-
-    return res.status(200).json(update);
+    return res.status(200).json(result);
   } catch (err) {
-    console.log(err);
+    return res.status(500).json({ error: `Error: ${err.message}` });
+  }
+};
+
+const patch = async (req, res) => {
+  try {
+    const result = await basePatch(model, req.params.id, req.query.type);
+
+    return res.status(200).json(result);
+  } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }
 };
 
 const destroy = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    const destroy = await prisma.reservationDetail.delete({
-      where: { reserve_detail_id: parseInt(id) },
-    });
-
-    return res.status(200).json(destroy);
+    const result = await baseDestroy(model, req.params.id);
+    return res.status(200).json(result);
   } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 
-module.exports = { select, create, update, destroy };
+module.exports = {
+  select,
+  create,
+  update,
+  patch,
+  destroy,
+};

@@ -7,15 +7,18 @@ const {
 } = require("../base/base-controller");
 
 const model = "employee";
-const idField = "employee_id";
 const field = "employee_code";
 const prefix = "EMP";
 const pad = 4;
 
 const select = async (req, res) => {
-  const { id } = req.params;
   try {
-    const result = await baseSelect(model, id, req.query, idField);
+    const result = await baseSelect(
+      model,
+      req.params.id,
+      req.query,
+      `${model}_id`
+    );
 
     if (!result || (Array.isArray(result) && !result.length)) {
       return res.status(404).json({ msg: "No data found" });
@@ -37,7 +40,7 @@ const create = async (req, res) => {
       {
         field,
         prefix,
-        idField,
+        idField: `${model}_id`,
       },
       pad
     );

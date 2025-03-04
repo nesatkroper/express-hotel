@@ -19,7 +19,6 @@ const ROOMTYPES = [
 ];
 
 const main = async () => {
-  // Upsert ROLES
   for (const role of ROLES) {
     await prisma.role.upsert({
       where: { name: role.name },
@@ -29,7 +28,7 @@ const main = async () => {
   }
 
   for (const type of ROOMTYPES) {
-    await prisma.roomType.upsert({
+    await prisma.roomtype.upsert({
       where: {
         type_name: type.type_name,
         type_code: type.type_code,

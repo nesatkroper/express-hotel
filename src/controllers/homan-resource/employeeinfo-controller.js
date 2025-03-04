@@ -2,35 +2,14 @@ const path = require("path");
 const { uploadPath } = require("@/provider/upload-path");
 
 const {
-  baseSelect,
   baseCreate,
   baseUpdate,
-  basePatch,
   baseDestroy,
 } = require("../base/base-controller");
 
-const model = "customer";
+const model = "employeeinfo";
 
-const select = async (req, res) => {
-  try {
-    const result = await baseSelect(
-      model,
-      req.params.id,
-      req.query,
-      `${model}_id`
-    );
-
-    if (!result || (Array.isArray(result) && !result.length)) {
-      return res.status(404).json({ msg: "No data found" });
-    }
-    return res.status(200).json(result);
-  } catch (err) {
-    console.error("Error:", err);
-    return res.status(500).json({ error: `Error: ${err.message}` });
-  }
-};
-
-const create = async (req, res) => {
+const createInfo = async (req, res) => {
   try {
     const picture = req.file ? path.basename(req.file.path) : null;
     const data = { ...req.body, picture };
@@ -43,7 +22,7 @@ const create = async (req, res) => {
   }
 };
 
-const update = async (req, res) => {
+const updateInfo = async (req, res) => {
   try {
     const result = await baseUpdate(
       model,
@@ -59,17 +38,7 @@ const update = async (req, res) => {
   }
 };
 
-const patch = async (req, res) => {
-  try {
-    const result = await basePatch(model, req.params.id, req.query.type);
-
-    return res.status(200).json(result);
-  } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
-  }
-};
-
-const destroy = async (req, res) => {
+const destroyInfo = async (req, res) => {
   try {
     const result = await baseDestroy(model, req.params.id);
     return res.status(200).json(result);
@@ -79,9 +48,7 @@ const destroy = async (req, res) => {
 };
 
 module.exports = {
-  select,
-  create,
-  update,
-  patch,
-  destroy,
+  createInfo,
+  updateInfo,
+  destroyInfo,
 };

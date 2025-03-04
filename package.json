@@ -6,11 +6,11 @@
   "scripts": {
     "test": "jest",
     "dev": "nodemon index.js",
-    "migrate": "npx prisma migrate dev --name modify product category",
+    "migrate": "npx prisma migrate dev --name modify a",
     "dbpush": "npx prisma db push",
     "generate": "npx prisma generate",
     "seed": "npx prisma db seed",
-    "git": "git add . && git commit -m \"rename from product caegory to caegory\" &&   git push && npm run dev",
+    "git": "git add . && git commit -m \"modify all controller to use base controller\" &&   git push && npm run dev",
     "prisma": "npm run migrate && npm run generate && npm run dev"
   },
   "prisma": {

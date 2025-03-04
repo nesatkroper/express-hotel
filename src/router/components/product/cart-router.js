@@ -9,7 +9,7 @@ const {
   destroy,
 } = require("@/controllers/product/cart-controller");
 
-const { exportExcel } = require("@/router/components/export-excel/cart-excel");
+const { exportExcel } = require("@/controllers/export-excel/cart-excel");
 
 router.get("/export", exportExcel);
 router.get("/:auth_id?", select);

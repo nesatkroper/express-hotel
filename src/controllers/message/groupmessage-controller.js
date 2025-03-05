@@ -1,14 +1,28 @@
 const prisma = require("@/provider/client");
-const model = "groupmessage";
+const { baseSelect } = require("../base/base-controller");
 
 const select = async (req, res) => {
   try {
-    const result = await baseSelect(
-      model,
-      req.params.id,
-      req.query,
-      `${model}_id`
-    );
+    const { id } = req.params;
+    const { emp = false, take = 10 } = req.query;
+
+    let result;
+    if (!id) {
+      result = await prisma.groupmessage.findMany({
+        take: parseInt(take, 10),
+        orderBy: {
+          groupmessage_id: "desc",
+        },
+        include: {
+          employee: JSON.parse(emp),
+        },
+      });
+    } else {
+      result = await prisma.groupmessage.findUnique({
+        where: { groupmessage_id: parseInt(id) },
+        include: { employee: JSON.parse(emp) },
+      });
+    }
 
     if (!result || (Array.isArray(result) && !result.length))
       return res.status(400).json({ msg: "no data" });

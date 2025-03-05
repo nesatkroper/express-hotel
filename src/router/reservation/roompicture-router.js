@@ -38,7 +38,7 @@ const {
   create,
   update,
   destroy,
-} = require("@/controllers/reservation/room-picture-controller");
+} = require("@/controllers/reservation/roompicture-controller");
 
 router.get("/:id?", select);
 router.post("/", upload.single("picture"), create);

@@ -1,14 +1,14 @@
 const fs = require("fs");
 const path = require("path");
 
-const routers = {};
+const endpoints = {};
 
 const loadRouters = (folder) => {
-  const dirPath = path.join(__dirname, "components", folder);
+  const dirPath = path.join(__dirname, folder);
   fs.readdirSync(dirPath).forEach((file) => {
     if (file.endsWith("-router.js")) {
       const routerName = file.replace("-router.js", "Router");
-      routers[routerName] = require(path.join(dirPath, file));
+      endpoints[routerName] = require(path.join(dirPath, file));
     }
   });
 };
@@ -24,4 +24,4 @@ const loadRouters = (folder) => {
   "sale",
 ].forEach(loadRouters);
 
-module.exports = routers;
+module.exports = endpoints;

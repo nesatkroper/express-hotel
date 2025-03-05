@@ -1,4 +1,4 @@
-const { uploadPath } = require("@/provider/upload-path");
+
 
 const {
   baseSelect,

@@ -1,4 +1,4 @@
-const { create } = require("@/controllers/message/group-message-controller");
+const { create } = require("@/controllers/message/groupmessage-controller");
 
 const setupSocket = (io, db) => {
   io.on("connection", (socket) => {

@@ -7,7 +7,7 @@ const baseSelect = async (model, id, queryParams, orderField = "id") => {
   const { order = "desc", status = "active", ...relations } = queryParams;
 
   try {
-    const whereCondition = { status };
+    const whereCondition = status === "all" ? {} : { status };
     if (id) whereCondition[`${model}_id`] = parseInt(id) || undefined;
     const selectData = id
       ? await prisma[model].findUnique({

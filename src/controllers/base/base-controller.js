@@ -4,22 +4,39 @@ const prisma = require("@/provider/client");
 const { modelSchemas } = require("./base-schema");
 
 const baseSelect = async (model, id, queryParams, orderField = "id") => {
-  const { order = "desc", status = "active", ...relations } = queryParams;
+  const {
+    order = "desc",
+    status = "active",
+    page,
+    limit,
+    ...relations
+  } = queryParams;
 
   try {
     const whereCondition = status === "all" ? {} : { status };
     if (id) whereCondition[`${model}_id`] = parseInt(id) || undefined;
-    const selectData = id
-      ? await prisma[model].findUnique({
-          where: whereCondition,
-          include: Object.fromEntries(
-            Object.entries(relations).map(([key, value]) => [
-              key,
-              value === "true",
-            ])
-          ),
-        })
-      : await prisma[model].findMany({
+
+    const pageNumber = page ? parseInt(page, 10) : null;
+    const pageSize = limit ? parseInt(limit, 10) : null;
+    const skip =
+      pageNumber && pageSize ? (pageNumber - 1) * pageSize : undefined;
+    const take = pageSize || undefined;
+
+    if (id) {
+      const selectData = await prisma[model].findUnique({
+        where: whereCondition,
+        include: Object.fromEntries(
+          Object.entries(relations).map(([key, value]) => [
+            key,
+            value === "true",
+          ])
+        ),
+      });
+
+      return { data: selectData };
+    } else {
+      const [items, total] = await Promise.all([
+        prisma[model].findMany({
           where: whereCondition,
           include: Object.fromEntries(
             Object.entries(relations).map(([key, value]) => [
@@ -28,9 +45,24 @@ const baseSelect = async (model, id, queryParams, orderField = "id") => {
             ])
           ),
           orderBy: { [orderField]: order },
-        });
+          skip,
+          take,
+        }),
+        prisma[model].count({ where: whereCondition }),
+      ]);
 
-    return selectData;
+      return pageNumber && pageSize
+        ? {
+            data: items,
+            meta: {
+              total,
+              page: pageNumber,
+              limit: pageSize,
+              totalPages: Math.ceil(total / pageSize),
+            },
+          }
+        : { data: items };
+    }
   } catch (err) {
     console.error("Error in baseSelect:", err);
     throw new Error(err.message);
@@ -198,27 +230,5 @@ const convertData = (data, modelSchema) => {
     throw new Error("Failed to convert data due to schema mismatch.");
   }
 };
-
-// const convertData = (data, modelSchema) => {
-//   const convertedData = {};
-
-//   for (const key in data) {
-//     if (modelSchema[key] === "Int") {
-//       convertedData[key] = isNaN(parseInt(data[key]))
-//         ? null
-//         : parseInt(data[key]);
-//     } else if (modelSchema[key] === "Float") {
-//       convertedData[key] = isNaN(parseFloat(data[key]))
-//         ? null
-//         : parseFloat(data[key]);
-//     } else if (modelSchema[key] === "DateTime") {
-//       convertedData[key] = data[key] ? new Date(data[key]) : null;
-//     } else {
-//       convertedData[key] = data[key];
-//     }
-//   }
-
-//   return convertedData;
-// };
 
 module.exports = { baseSelect, baseCreate, baseUpdate, basePatch, baseDestroy };

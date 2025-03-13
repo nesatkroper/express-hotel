@@ -10,7 +10,7 @@
     "dbpush": "npx prisma db push",
     "generate": "npx prisma generate",
     "seed": "npx prisma db seed",
-    "git": "git add . && git commit -m \"start using pagination\" &&   git push && npm run dev",
+    "git": "git add . && git commit -m \"add redis caching service\" &&   git push",
     "prisma": "npm run migrate && npm run generate && npm run dev"
   },
   "prisma": {
@@ -43,6 +43,7 @@
     "mysql2": "^3.11.4",
     "nodemailer": "^6.9.16",
     "path": "^0.12.7",
+    "redis": "^4.7.0",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "url": "^0.11.4"

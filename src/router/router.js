@@ -3,13 +3,14 @@ const expressListEndpoints = require("express-list-endpoints");
 const router = express.Router();
 const routers = require("@/router/export-router");
 const { baseSelect } = require("@/controllers/base/base-controller");
+const { cacheMiddleware } = require("@/middleware/cach-middleware");
 
 Object.entries(routers).forEach(([routeName, routeHandler]) => {
   const path = `/${routeName.replace("Router", "").toLowerCase()}`;
   router.use(path, routeHandler);
 });
 
-router.get("/log/:id?", async (req, res) => {
+router.get("/log/:id?", cacheMiddleware(3600), async (req, res) => {
   try {
     const result = await baseSelect("log", req.params.id, req.query, "id");
 

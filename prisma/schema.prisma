@@ -51,6 +51,22 @@ model Role {
   auths Auth[]
 }
 
+model State {
+  state_id  Int @id @default(autoincrement())
+  state_name  String  @unique
+
+  cities   City[]
+}
+
+model City {
+  city_id  Int @id  @default(autoincrement())
+  state_id  Int
+  city_name   String   
+
+  state  State  @relation(fields: [state_id], references: [state_id])
+  @@unique([city_name, state_id])
+}
+
 model Auth {
   auth_id      Int   @id @default(autoincrement())
   email        String   @unique

@@ -31,14 +31,27 @@ const select = async (req, res) => {
 };
 
 const create = async (req, res) => {
+  let picture;
   try {
-    const picture = req.file ? path.basename(req.file.path) : null;
+    picture = req.file ? path.basename(req.file.path) : null;
     const data = { ...req.body, picture };
 
     const result = await baseCreate(model, data);
     return res.status(200).json(result);
   } catch (err) {
-    console.error(`Error creating ${model}:`, err);
+    console.log(`Error creating ${model}:`, err);
+
+    if (picture) {
+      const filePath = path.join(
+        __dirname,
+        "../../../public/uploads/customer",
+        picture
+      );
+      fs.unlink(filePath, (unlinkErr) => {
+        if (unlinkErr) console.error("Failed to delete file:", unlinkErr);
+      });
+    }
+
     return res.status(500).json({ error: `Error :${err}` });
   }
 };

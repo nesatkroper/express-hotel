@@ -38,7 +38,6 @@ const main = async () => {
     await prisma.city.upsert({
       where: {
         city_name_state_id: {
-          // Use the composite key
           city_name: city.city_name,
           state_id: city.state_id,
         },

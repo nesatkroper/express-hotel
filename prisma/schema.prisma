@@ -68,10 +68,10 @@ model City {
   city_name   String   
   status   Status  @default(active)
 
+  @@unique([city_name, state_id])
   state  State  @relation(fields: [state_id], references: [state_id])
   employees    Employeeinfo[]
   customers    Customer[]
-  @@unique([city_name, state_id])
 }
 
 model Auth {
@@ -185,11 +185,11 @@ model Customer {
   status      Status     @default(active)
   created_at     DateTime @default(now())
 
-  auth    Auth?
-  reservedetails Reservedetail[]
-  sales    Sale[]
   state  State  @relation(fields: [state_id], references: [state_id])
   city    City  @relation(fields: [city_id], references: [city_id])
+  auth    Auth?
+  sales    Sale[]
+  reservedetails Reservedetail[]
 }
 
 model Reservedetail {

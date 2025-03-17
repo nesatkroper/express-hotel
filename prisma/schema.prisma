@@ -47,6 +47,7 @@ enum Status {
 model Role {
   role_id Int    @id @default(autoincrement())
   name    String @unique
+  status   Status  @default(active)
 
   auths Auth[]
 }
@@ -54,16 +55,22 @@ model Role {
 model State {
   state_id  Int @id @default(autoincrement())
   state_name  String  @unique
+  status   Status  @default(active)
 
   cities   City[]
+  employees    Employeeinfo[]
+  customers    Customer[]
 }
 
 model City {
   city_id  Int @id  @default(autoincrement())
   state_id  Int
   city_name   String   
+  status   Status  @default(active)
 
   state  State  @relation(fields: [state_id], references: [state_id])
+  employees    Employeeinfo[]
+  customers    Customer[]
   @@unique([city_name, state_id])
 }
 
@@ -89,6 +96,7 @@ model Attendance {
   employee_id Int
   datetime DateTime @default(now())
   note String?
+  status   Status  @default(active)
 
   employee Employee @relation(fields: [employee_id], references: [employee_id])
 }
@@ -127,13 +135,15 @@ model Employeeinfo  {
   region      String?
   email          String?  @unique
   address        String?
-  city           String?
-  state          String?
+  city_id           Int
+  state_id          Int
   country     String?
   note      String?
+  status   Status  @default(active)
 
   employee Employee @relation(fields: [employee_id], references: [employee_id])
-
+  state  State  @relation(fields: [state_id], references: [state_id])
+  city    City  @relation(fields: [city_id], references: [city_id])
 }
 
 model Department {
@@ -170,14 +180,16 @@ model Customer {
   email          String?  @unique
   phone          String?
   address        String?
-  city           String?
-  state          String?
+  city_id           Int
+  state_id          Int
   status      Status     @default(active)
   created_at     DateTime @default(now())
 
   auth    Auth?
   reservedetails Reservedetail[]
   sales    Sale[]
+  state  State  @relation(fields: [state_id], references: [state_id])
+  city    City  @relation(fields: [city_id], references: [city_id])
 }
 
 model Reservedetail {
@@ -189,6 +201,7 @@ model Reservedetail {
   price             Decimal @db.Decimal(10,2)   
   night             Int
   amount            Decimal @db.Decimal(10,2)
+  status   Status  @default(active)
 
   room      Room     @relation(fields: [room_id], references: [room_id])
   employee  Employee @relation(fields: [employee_id], references: [employee_id])
@@ -237,6 +250,7 @@ model Roomtype {
   roomtype_id      Int    @id    @default(autoincrement())
   type_name     String    @unique
   type_code     String    @unique
+  status   Status  @default(active)
 
   rooms   Room[]
 }
@@ -246,6 +260,7 @@ model Roompicture {
   room_id         Int
   picture         String
   created_at      DateTime @default(now())
+  status   Status  @default(active)
 
   room Room @relation(fields: [room_id], references: [room_id])
 }
@@ -284,6 +299,7 @@ model Cart {
   auth_id   Int
   product_id     Int   
   quantity   Int 
+  status   Status  @default(active)
   created_at    DateTime    @default(now())
 
   product   Product  @relation(fields: [product_id], references: [product_id])
@@ -295,6 +311,7 @@ model Cartnote {
   cartnote_id   Int   @id    @default(autoincrement())
   cart_id   Int
   note   String
+  status   Status  @default(active)
 
   cart  Cart   @relation(fields: [cart_id], references: [cart_id])
 }
@@ -351,6 +368,7 @@ model Saledetail {
   product_id     Int
   quantity       Int
   amount         Decimal   @db.Decimal(12,2)
+  status   Status  @default(active)
   created_at      DateTime @default(now())
 
   sale Sale @relation(fields: [sale_id], references: [sale_id])
@@ -427,6 +445,7 @@ model Groupmessage {
   employee_id   Int? 
   content  String
   time  DateTime
+  status   Status  @default(active)
   created_at   DateTime   @default(now())
 
   employee    Employee?   @relation(fields: [employee_id], references: [employee_id])

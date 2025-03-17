@@ -3,10 +3,17 @@ const fs = require("fs");
 const prisma = require("@/provider/client");
 const { modelSchemas } = require("./base-schema");
 
-const baseSelect = async (model, id, queryParams, orderField = "id") => {
+const baseSelect = async (
+  model,
+  id,
+  queryParams,
+  orderField = "id",
+  whereField = null
+) => {
   const {
     order = "desc",
     status = "active",
+    where,
     page,
     limit,
     ...relations
@@ -15,6 +22,11 @@ const baseSelect = async (model, id, queryParams, orderField = "id") => {
   try {
     const whereCondition = status === "all" ? {} : { status };
     if (id) whereCondition[`${model}_id`] = parseInt(id) || undefined;
+
+    if (where && whereField) {
+      const whereValue = !isNaN(where) ? parseInt(where) : where;
+      whereCondition[whereField] = whereValue;
+    }
 
     const pageNumber = page ? parseInt(page, 10) : null;
     const pageSize = limit ? parseInt(limit, 10) : null;

@@ -22,6 +22,7 @@ const loadRouters = (folder) => {
   "product",
   "reservation",
   "sale",
+  "address",
 ].forEach(loadRouters);
 
 module.exports = endpoints;

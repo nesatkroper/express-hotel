@@ -13,16 +13,8 @@ const loadRouters = (folder) => {
   });
 };
 
-[
-  "finance",
-  "gmail",
-  "human-resource",
-  "message",
-  "notification",
-  "product",
-  "reservation",
-  "sale",
-  "address",
-].forEach(loadRouters);
+["finance", "human-resource", "product", "realtime", "sale"].forEach(
+  loadRouters
+);
 
 module.exports = endpoints;

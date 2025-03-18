@@ -7,7 +7,7 @@ const {
   create,
   update,
   destroy,
-} = require("@/controllers/address/city-controller");
+} = require("@/controllers/homan-resource/city-controller");
 
 router.get("/:id?", select);
 router.post("/", create);

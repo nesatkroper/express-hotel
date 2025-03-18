@@ -10,7 +10,7 @@
     "dbpush": "npx prisma db push",
     "generate": "npx prisma generate",
     "seed": "npx prisma db seed",
-    "git": "git add . && git commit -m \"add redis caching service\" &&   git push",
+    "git": "git add . && git commit -m \"clean code\" &&   git push",
     "prisma": "npm run migrate && npm run generate && npm run dev"
   },
   "prisma": {

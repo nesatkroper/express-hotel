@@ -1,34 +1,25 @@
 const prisma = require("@/provider/client");
 const { baseSelect } = require("../base/base-controller");
 
+const model = "groupmessage";
+
 const select = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { emp = false, take = 10 } = req.query;
+    const result = await baseSelect(
+      model,
+      req.params.id,
+      req.query,
+      `${model}_id`,
+      "state_id"
+    );
 
-    let result;
-    if (!id) {
-      result = await prisma.groupmessage.findMany({
-        take: parseInt(take, 10),
-        orderBy: {
-          groupmessage_id: "desc",
-        },
-        include: {
-          employee: JSON.parse(emp),
-        },
-      });
-    } else {
-      result = await prisma.groupmessage.findUnique({
-        where: { groupmessage_id: parseInt(id) },
-        include: { employee: JSON.parse(emp) },
-      });
+    if (!result || (Array.isArray(result) && !result.length)) {
+      return res.status(404).json({ msg: "No data found" });
     }
-
-    if (!result || (Array.isArray(result) && !result.length))
-      return res.status(400).json({ msg: "no data" });
-    return res.status(200).json(result.reverse());
+    return res.status(200).json(result);
   } catch (err) {
-    return res.status(500).json({ error: `Error :${err}` });
+    console.error("Error:", err);
+    return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
 

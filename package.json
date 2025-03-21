@@ -21,7 +21,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "arktype": "^2.0.4",
     "axios": "^1.7.9",
     "bakong-khqr": "^1.0.17",
     "bcrypt": "^5.1.1",

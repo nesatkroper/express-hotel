@@ -45,6 +45,7 @@ const baseSelect = async (
         ),
       });
 
+      console.table(selectData);
       return { data: selectData };
     } else {
       const [items, total] = await Promise.all([
@@ -76,7 +77,7 @@ const baseSelect = async (
         : { data: items };
     }
   } catch (err) {
-    console.error("Error in baseSelect:", err);
+    console.log("Error in baseSelect:", err);
     throw new Error(err.message);
   }
 };
@@ -103,9 +104,11 @@ const baseCreate = async (model, data, options = {}, pad = 4) => {
         data: { [options.field]: generatedCode },
       });
 
+      console.table(updatedRecord);
       return updatedRecord;
     }
 
+    console.table(createdRecord);
     return createdRecord;
   } catch (err) {
     console.error(`Error creating ${model}:`, err);

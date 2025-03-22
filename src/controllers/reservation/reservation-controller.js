@@ -30,7 +30,6 @@ const select = async (req, res) => {
 const create = async (req, res) => {
   try {
     const data = { ...req.body };
-
     const result = await baseCreate(model, data);
     return res.status(200).json(result);
   } catch (err) {

@@ -7,9 +7,6 @@ const {
 } = require("../base/base-controller");
 
 const model = "room";
-const field = "room_name";
-const prefix = "ROOM";
-const pad = 4;
 
 const select = async (req, res) => {
   try {
@@ -32,18 +29,9 @@ const select = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const data = { ...req.body };
+    const data = { ...req.body, room_name: `ROOM-${req.body.room_name}` };
 
-    const result = await baseCreate(
-      model,
-      data,
-      {
-        field,
-        prefix,
-        idField: `${model}_id`,
-      },
-      pad
-    );
+    const result = await baseCreate(model, data);
     return res.status(200).json(result);
   } catch (err) {
     console.error(`Error creating ${model}:`, err);

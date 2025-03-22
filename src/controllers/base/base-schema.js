@@ -98,7 +98,7 @@ const modelSchemas = {
   },
   room: {
     room_id: "Int",
-    room_type_id: "Int",
+    roomtype_id: "Int",
     room_name: "String",
     price: "Decimal",
     is_ac: "Boolean",
@@ -109,7 +109,7 @@ const modelSchemas = {
     status: "String",
   },
   roomType: {
-    room_type_id: "Int",
+    roomtype_id: "Int",
     type_name: "String",
     type_code: "String",
   },

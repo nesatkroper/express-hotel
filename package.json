@@ -6,12 +6,12 @@
   "scripts": {
     "test": "jest",
     "dev": "nodemon index.js",
-    "migrate": "npx prisma migrate dev --name fix room picture",
+    "migrate": "npx prisma migrate dev --name token",
     "dbpush": "npx prisma db push",
     "generate": "npx prisma generate",
     "seed": "npx prisma db seed",
     "git": "git add . && git commit -m \"clean code\" &&   git push",
-    "prisma": "npm run migrate && npm run generate && npm run dev"
+    "prisma": "npm run migrate && npm run generate"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
@@ -48,10 +48,10 @@
     "url": "^0.11.4"
   },
   "devDependencies": {
-    "@prisma/client": "^6.4.1",
+    "@prisma/client": "^6.5.0",
     "globals": "^16.0.0",
     "nodemon": "^3.1.7",
-    "prisma": "^6.4.1"
+    "prisma": "^6.5.0"
   },
   "_moduleAliases": {
     "@": "./src",

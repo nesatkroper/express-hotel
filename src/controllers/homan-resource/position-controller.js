@@ -7,7 +7,7 @@ const {
 } = require("../base/base-controller");
 
 const model = "position";
-const field = "position_code";
+const field = "positionCode";
 const prefix = "POS";
 const pad = 4;
 
@@ -17,7 +17,7 @@ const select = async (req, res) => {
       model,
       req.params.id,
       req.query,
-      `${model}_id`
+      `${model}Id`
     );
 
     if (!result || (Array.isArray(result) && !result.length)) {
@@ -40,7 +40,7 @@ const create = async (req, res) => {
       {
         field,
         prefix,
-        idField: `${model}_id`,
+        idField: `${model}Id`,
       },
       pad
     );

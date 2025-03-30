@@ -2,35 +2,58 @@ const prismaClient = require("@/provider/client");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const generateToken = (auth) => {
+const cleanExpiredTokens = async () => {
+  await prismaClient.token.deleteMany({
+    where: {
+      expiresAt: {
+        lt: new Date(),
+      },
+    },
+  });
+};
+
+const generateToken = async (auth, req) => {
   if (!auth.role || !auth.role.name)
     throw new Error("Role information is missing");
 
-  return jwt.sign(
-    { auth_id: auth.auth_id, role: auth.role.name },
+  const token = jwt.sign(
+    { authId: auth.authId, role: auth.role.name },
     process.env.JWT_SECRET,
     { expiresIn: "12h" }
   );
+
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + 12);
+
+  await prismaClient.token.create({
+    data: {
+      token,
+      expiresAt,
+      deviceInfo: req.headers["user-agent"],
+      ipAddress: req.ip,
+      authId: auth.authId,
+    },
+  });
+
+  await cleanExpiredTokens();
+  return token;
 };
 
 const register = async (req, res) => {
-  const { email, password, role, employee_id } = req.body;
+  const { email, password, role, employeeId, customerId } = req.body;
   try {
-    //! Role check
     if (typeof role !== "string")
       return res.status(400).json({ err: "Role must be a String." });
 
-    // ! Check if the user already exists
     const existingAuth = await prismaClient.auth.findUnique({
       where: { email },
     });
     if (existingAuth) {
       return res.status(400).json({ error: "auth already exists" });
     }
-    // ! Hash password
+
     const hashedPass = await bcrypt.hash(password, 10);
 
-    // ! Find role in the database
     const authRole = await prismaClient.role.findUnique({
       where: { name: String(role) },
     });
@@ -38,26 +61,23 @@ const register = async (req, res) => {
     if (!authRole)
       return res.status(400).json({ error: "Role does not exist" });
 
-    // ! Create new auth
     const newAuth = await prismaClient.auth.create({
       data: {
         email,
         password: hashedPass,
-        role_id: authRole.role_id,
-        employee_id: parseInt(employee_id, 10),
-        customer_id: parseInt(customer_id, 10),
+        roleId: authRole.roleId,
+        employeeId: parseInt(employeeId, 10),
+        customerId: parseInt(customerId, 10),
       },
       include: { role: true },
     });
 
-    // ! Return JWT token
-    const token = generateToken(newAuth);
+    const token = await generateToken(newAuth, req);
 
-    // ! return the response with token and user information
     res.status(201).json({
       token,
       auth: {
-        auth_id: newAuth.auth_id,
+        authId: newAuth.authId,
         email: newAuth.email,
         role: newAuth.role.name,
       },
@@ -68,7 +88,6 @@ const register = async (req, res) => {
   }
 };
 
-// ! Login User
 const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -77,13 +96,11 @@ const login = async (req, res) => {
       return res.status(400).json({ error: "Email is required." });
     }
 
-    // ! Find user by email
     const auth = await prismaClient.auth.findUnique({
       where: { email },
       include: { role: true, employee: true, customer: true },
     });
 
-    //  ! check if auth found
     if (!auth) return res.status(404).json({ error: "auth not found" });
 
     if (auth.status != "active")
@@ -92,12 +109,10 @@ const login = async (req, res) => {
         msg: "please contact to admin to reactive.",
       });
 
-    // ! Check if auth credentials
     const isMatch = await bcrypt.compare(password, auth.password);
     if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
 
-    // ! Return response with token and auth info
-    const token = generateToken(auth);
+    const token = await generateToken(auth, req);
     res.json({
       token,
       auth,
@@ -108,8 +123,15 @@ const login = async (req, res) => {
   }
 };
 
-const logout = (req, res) => {
+const logout = async (req, res) => {
   try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (token) {
+      await prismaClient.token.deleteMany({
+        where: { token },
+      });
+    }
+
     res.clearCookie("token");
 
     return res.status(200).json({ message: "Logged out successfully." });
@@ -119,7 +141,6 @@ const logout = (req, res) => {
   }
 };
 
-// ! Get all Users (Admin-only route)
 const getAllAuth = async (req, res) => {
   try {
     const auths = await prismaClient.auth.findMany({
@@ -132,11 +153,10 @@ const getAllAuth = async (req, res) => {
   }
 };
 
-// ! Get current auth info
 const getAuth = async (req, res) => {
   try {
     const auth = await prismaClient.auth.findUnique({
-      where: { auth_id: req.auth.auth_id },
+      where: { authId: req.auth.authId },
       include: { role: true, employee: true, customer: true },
     });
 

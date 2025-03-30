@@ -1,16 +1,16 @@
 const prisma = require("@/provider/client");
 const morgan = require("morgan");
 
-const logToDB = async (method, url, status, response_time, ip, user_agent) => {
+const logToDB = async (method, url, status, responseTime, ip, userAgent) => {
   try {
     await prisma.log.create({
       data: {
         method,
         url,
         status,
-        response_time,
+        responseTime,
         ip,
-        user_agent,
+        userAgent,
       },
     });
   } catch (error) {
@@ -28,18 +28,18 @@ const dbLogger = morgan((tokens, req, res) => {
     method: tokens.method(req, res),
     url: tokens.url(req, res),
     status: parseInt(tokens.status(req, res), 10),
-    response_time: parseFloat(tokens["response-time-ms"](req, res)),
+    responseTime: parseFloat(tokens["response-time-ms"](req, res)),
     ip: req.ip,
-    user_agent: req.headers["user-agent"] || "",
+    userAgent: req.headers["user-agent"] || "",
   };
 
   logToDB(
     logData.method,
     logData.url,
     logData.status,
-    logData.response_time,
+    logData.responseTime,
     logData.ip,
-    logData.user_agent
+    logData.userAgent
   );
 
   return null;

@@ -1,16 +1,13 @@
 const prisma = require("@/provider/client");
 const { baseSelect } = require("../base/base-controller");
 
-const model = "groupmessage";
-
 const select = async (req, res) => {
   try {
     const result = await baseSelect(
-      model,
+      "groupmessage",
       req.params.id,
       req.query,
-      `${model}_id`,
-      "state_id"
+      "groupmessageId"
     );
 
     if (!result || (Array.isArray(result) && !result.length)) {
@@ -25,21 +22,21 @@ const select = async (req, res) => {
 
 const create = async (message) => {
   const [fname, lname] = message.sender.split(" ");
-  let emp_id = null;
+  let empId = null;
 
   try {
     const emp = await prisma.employee.findFirst({
       where: {
-        first_name: fname,
-        last_name: lname,
+        firstName: fname,
+        lastName: lname,
       },
     });
 
-    if (emp) emp_id = emp.employee_id;
+    if (emp) empId = emp.employeeId;
 
-    const newChat = await prisma.groupMessage.create({
+    const newChat = await prisma.groupmessage.create({
       data: {
-        employee_id: emp_id,
+        employeeId: empId || "1",
         content: message.content,
         time: message.time,
       },

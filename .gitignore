@@ -39,11 +39,7 @@ package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
-# Optional: PM2 process manager files
-pids/
-*.pid
-*.seed
-*.log
+
 
 # TypeScript build cache
 .cache/

@@ -7,7 +7,7 @@ const baseSelect = async (
   model,
   id,
   queryParams,
-  orderField = "id",
+  orderField = "Id",
   whereField = null
 ) => {
   const {
@@ -21,7 +21,7 @@ const baseSelect = async (
 
   try {
     const whereCondition = status === "all" ? {} : { status };
-    if (id) whereCondition[`${model}_id`] = parseInt(id) || undefined;
+    if (id) whereCondition[`${model}Id`] = id;
 
     if (where && whereField) {
       const whereValue = !isNaN(where) ? parseInt(where) : where;
@@ -95,9 +95,11 @@ const baseCreate = async (model, data, options = {}, pad = 4) => {
     });
 
     if (options.field && options.idField) {
-      const generatedCode = `${options.prefix}-${String(
+      const code = `${options.prefix}-${String(
         createdRecord[options.idField].toString().padStart(pad, "0")
       )}`;
+
+      const generatedCode = code.split("-").slice(0, 2).join("-");
 
       const updatedRecord = await prisma[model].update({
         where: { [options.idField]: createdRecord[options.idField] },
@@ -122,16 +124,11 @@ const baseUpdate = async (model, id, data, file, uploadPath) => {
       throw new Error(`Model schema for "${model}" not found`);
     }
 
-    const idField = `${model}_id`;
-    const recordId = parseInt(id, 10);
-    if (isNaN(recordId)) {
-      throw new Error("Invalid ID provided");
-    }
-
+    const idField = `${model}Id`;
     let updateData = convertData(data, modelSchemas[model]);
 
     const existingRecord = await prisma[model].findUnique({
-      where: { [idField]: recordId },
+      where: { [idField]: id },
     });
 
     if (!existingRecord) {
@@ -153,7 +150,7 @@ const baseUpdate = async (model, id, data, file, uploadPath) => {
     }
 
     const updatedRecord = await prisma[model].update({
-      where: { [idField]: recordId },
+      where: { [idField]: id },
       data: updateData,
     });
 
@@ -167,12 +164,9 @@ const baseUpdate = async (model, id, data, file, uploadPath) => {
 const basePatch = async (model, id, type) => {
   if (type) {
     try {
-      const recordId = parseInt(id, 10);
-      if (isNaN(recordId)) throw new Error("Invalid ID provided");
-
       let status;
       if (type === "remove") {
-        status = "disactive";
+        status = "inactive";
       } else if (type === "restore") {
         status = "active";
       } else {
@@ -180,7 +174,7 @@ const basePatch = async (model, id, type) => {
       }
 
       const updatedRecord = await prisma[model].update({
-        where: { [`${model}_id`]: recordId },
+        where: { [`${model}Id`]: id },
         data: { status },
       });
 
@@ -194,17 +188,14 @@ const basePatch = async (model, id, type) => {
 
 const baseDestroy = async (model, id) => {
   try {
-    const recordId = parseInt(id, 10);
-    if (isNaN(recordId)) throw new Error("Invalid ID provided");
-
     const record = await prisma[model].findUnique({
-      where: { [`${model}_id`]: recordId },
+      where: { [`${model}Id`]: id },
     });
 
     if (!record) throw new Error(`${model} not found`);
 
     return await prisma[model].delete({
-      where: { [`${model}_id`]: recordId },
+      where: { [`${model}Id`]: id },
     });
   } catch (err) {
     console.error(`Error deleting ${model}:`, err);

@@ -2,24 +2,24 @@ const prisma = require("@/provider/client");
 const morgan = require("morgan");
 
 const logToDB = async (
-  auth_id,
+  authId,
   method,
   url,
   status,
-  response_time,
+  responseTime,
   ip,
-  user_agent
+  userAgent
 ) => {
   try {
     await prisma.authLog.create({
       data: {
-        auth_id,
+        authId,
         method,
         url,
         status,
-        response_time,
+        responseTime,
         ip,
-        user_agent,
+        userAgent,
       },
     });
   } catch (error) {
@@ -36,47 +36,45 @@ const dbLogger = morgan((tokens, req, res) => {
   const method = tokens.method(req, res);
   const url = tokens.url(req, res);
   const status = parseInt(tokens.status(req, res), 10);
-  const response_time = parseFloat(tokens["response-time-ms"](req, res));
+  const responseTime = parseFloat(tokens["response-time-ms"](req, res));
   const ip = req.ip;
-  const user_agent = req.headers["user-agent"] || "";
+  const userAgent = req.headers["user-agent"] || "";
 
-  let auth_id = null;
+  let authId = null;
 
   if (url === "/v1/login" && method === "POST") {
-    // Login: Get auth_id from email
     const { email } = req.body;
     if (email) {
       prisma.auth
         .findUnique({
           where: { email },
-          select: { auth_id: true },
+          select: { authId: true },
         })
         .then((authUser) => {
           if (authUser) {
             logToDB(
-              authUser.auth_id,
+              authUser.authId,
               method,
               url,
               status,
-              response_time,
+              responseTime,
               ip,
-              user_agent
+              userAgent
             );
           }
         })
-        .catch((error) => console.error("Error fetching auth_id:", error));
+        .catch((error) => console.error("Error fetching authId:", error));
     }
   } else if (url === "/v1/logout" && method === "POST") {
-    // Logout: Ensure req.user is set
-    if (req.user && req.user.auth_id) {
-      auth_id = req.user.auth_id;
-      logToDB(auth_id, method, url, status, response_time, ip, user_agent);
+    if (req.user && req.user.authId) {
+      authId = req.user.authId;
+      logToDB(authId, method, url, status, responseTime, ip, userAgent);
     } else {
       console.error("Logout request made but req.user is missing!");
     }
   }
 
-  return null; // Ensure Morgan does not expect a Promise
+  return null;
 });
 
 module.exports = dbLogger;

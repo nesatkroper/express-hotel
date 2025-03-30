@@ -2,11 +2,13 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  extensions = [ pgcrypto] 
 }
 
 enum AccountStatus {
@@ -34,28 +36,19 @@ enum PaymentStatus {
 
 enum PaymentMethod {
   cash
-  credit_card
+  creditCard
   khqr
   leave
 }
 
 enum Status {
   active
-  disactive
-}
-
-model Role {
-  role_id Int    @id @default(autoincrement())
-  name    String @unique
-  status   Status  @default(active)
-
-  auths Auth[]
+  inactive
 }
 
 model State {
-  state_id  Int @id @default(autoincrement())
-  state_name  String  @unique
-  status   Status  @default(active)
+  stateId     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String  @unique
 
   cities   City[]
   employees    Employeeinfo[]
@@ -63,63 +56,90 @@ model State {
 }
 
 model City {
-  city_id  Int @id  @default(autoincrement())
-  state_id  Int
-  city_name   String   
-  status   Status  @default(active)
+  cityId      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stateId   String @db.Uuid
+  name      String   
 
-  @@unique([city_name, state_id])
-  state  State  @relation(fields: [state_id], references: [state_id])
+  @@unique([name, stateId])
+  state  State  @relation(fields: [stateId], references: [stateId])
   employees    Employeeinfo[]
   customers    Customer[]
 }
 
-model Auth {
-  auth_id      Int   @id @default(autoincrement())
-  email        String   @unique
-  password     String
-  role_id      Int?
-  employee_id  Int?     @unique
-  customer_id  Int?     @unique
-  status      AccountStatus     @default(active)
-  created_at   DateTime @default(now())
+model Token {
+  tokenId     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authId      String   @db.Uuid
+  token       String   @unique
+  deviceInfo   String   @default("")
+  ipAddress   String    @default("")
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  
+  auth        Auth     @relation(fields: [authId], references: [authId])
+  
+  @@index([token])
+  @@index([expiresAt])
+}
 
-  role      Role?     @relation(fields: [role_id], references: [role_id])
-  employee  Employee? @relation(fields: [employee_id], references: [employee_id])
-  customer  Customer? @relation(fields: [customer_id], references: [customer_id])
+model Role {
+  roleId     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name    String @unique
+  status    Status  @default(active)
+
+  auths Auth[]
+}
+
+model Auth {
+  authId         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String   @unique  @db.VarChar(255)
+  password     String   @db.VarChar(255)
+  roleId      String @db.Uuid
+  employeeId  String? @db.Uuid  @unique
+  customerId  String? @db.Uuid   @unique
+  status      AccountStatus     @default(active)
+  createdAt   DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  role      Role?     @relation(fields: [roleId], references: [roleId])
+  token     Token[]
+  employee  Employee? @relation(fields: [employeeId], references: [employeeId])
+  customer  Customer? @relation(fields: [customerId], references: [customerId])
   cart   Cart[]
   logs   AuthLog[]
+
+  @@index([email])
 }
 
 model Attendance {
-  attendance_id Int @id @default(autoincrement())
-  employee_id Int
+  attendanceId  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeId   String @db.Uuid
   datetime DateTime @default(now())
   note String?
   status   Status  @default(active)
 
-  employee Employee @relation(fields: [employee_id], references: [employee_id])
+  employee Employee @relation(fields: [employeeId], references: [employeeId])
 }
 
 model Employee {
-  employee_id    Int      @id @default(autoincrement())
-  employee_code  String?  @unique
-  first_name     String
-  last_name      String
+  employeeId          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeCode  String?  @unique
+  firstName     String
+  lastName      String
   gender         Gender   @default(male)
   dob            DateTime?
   phone          String?  @unique
-  position_id    Int?
-  department_id  Int?
+  positionId    String @db.Uuid    @unique
+  departmentId    String @db.Uuid  @unique
   salary         Decimal  @db.Decimal(10,2)
-  hired_date     DateTime?
+  hiredDate     DateTime?
   status Status @default(active)
-  created_at     DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   auth      Auth?
   info      Employeeinfo?
-  position  Position? @relation(fields: [position_id], references: [position_id])
-  department Department? @relation(fields: [department_id], references: [department_id])
+  position  Position? @relation(fields: [positionId], references: [positionId])
+  department Department? @relation(fields: [departmentId], references: [departmentId])
   reservedetails   Reservedetail[]
   sales    Sale[]
   shift     Shift[]
@@ -129,257 +149,271 @@ model Employee {
 }
 
 model Employeeinfo  {
-  employeeinfo_id     Int     @id @default(autoincrement()) 
-  employee_id    Int      @unique
+  employeeinfoId          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid 
+  employeeId    String @db.Uuid      @unique
   picture        String?
   region      String?
   email          String?  @unique
   address        String?
-  city_id           Int
-  state_id          Int
+  cityId           String @db.Uuid
+  stateId          String @db.Uuid
   country     String?
   note      String?
   status   Status  @default(active)
 
-  employee Employee @relation(fields: [employee_id], references: [employee_id])
-  state  State  @relation(fields: [state_id], references: [state_id])
-  city    City  @relation(fields: [city_id], references: [city_id])
+  employee Employee @relation(fields: [employeeId], references: [employeeId])
+  state  State  @relation(fields: [stateId], references: [stateId])
+  city    City  @relation(fields: [cityId], references: [cityId])
 }
 
 model Department {
-  department_id   Int      @id @default(autoincrement())
-  department_name String?
-  department_code String?
+  departmentId         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  departmentName String
+  departmentCode String?
   memo            String?
   status     Status    @default(active)
-  created_at      DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   positions Position[]
   employees Employee[]
 }
 
 model Position {
-  position_id   Int      @id @default(autoincrement())
-  department_id Int
-  position_name String?
-  position_code String?
+  positionId         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  departmentId    String @db.Uuid
+  positionName String?
+  positionCode String?
   memo          String?
   status      Status     @default(active)
-  created_at    DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  department Department @relation(fields: [department_id], references: [department_id])
+  department Department @relation(fields: [departmentId], references: [departmentId])
   employees   Employee[]
 }
 
 model Customer {
-  customer_id    Int      @id @default(autoincrement())
-  first_name     String
-  last_name      String
+  customerId          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  firstName     String
+  lastName      String
   picture        String?
   gender         Gender   @default(male)
   email          String?  @unique
   phone          String?
   address        String?
-  city_id           Int
-  state_id          Int
+  cityId           String @db.Uuid
+  stateId          String @db.Uuid
   status      Status     @default(active)
-  created_at     DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  state  State  @relation(fields: [state_id], references: [state_id])
-  city    City  @relation(fields: [city_id], references: [city_id])
+  state  State  @relation(fields: [stateId], references: [stateId])
+  city    City  @relation(fields: [cityId], references: [cityId])
   auth    Auth?
   sales    Sale[]
   reservedetails Reservedetail[]
 }
 
 model Reservedetail {
-  reservedetail_id Int    @id @default(autoincrement())
-  room_id           Int
-  employee_id       Int
-  customer_id       Int?
-  reservation_id    Int
+  reservedetailId     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  roomId           String @db.Uuid
+  employeeId       String @db.Uuid
+  customerId       String @db.Uuid   @unique
+  reservationId    String @db.Uuid
   price             Decimal @db.Decimal(10,2)   
   night             Int
   amount            Decimal @db.Decimal(10,2)
   status   Status  @default(active)
 
-  room      Room     @relation(fields: [room_id], references: [room_id])
-  employee  Employee @relation(fields: [employee_id], references: [employee_id])
-  customer  Customer? @relation(fields: [customer_id], references: [customer_id])
-  reservation Reservation @relation(fields: [reservation_id], references: [reservation_id])
+  room      Room     @relation(fields: [roomId], references: [roomId])
+  employee  Employee @relation(fields: [employeeId], references: [employeeId])
+  customer  Customer? @relation(fields: [customerId], references: [customerId])
+  reservation Reservation @relation(fields: [reservationId], references: [reservationId])
 }
 
 model Reservation {
-  reservation_id  Int   @id @default(autoincrement())
-  checkin_date    DateTime
-  checkout_date   DateTime
-  is_checkin      Boolean
-  is_checkout     Boolean
-  reservation_type ReservationType @default(reserve)
+  reservationId     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  checkinDate    DateTime
+  checkoutDate   DateTime
+  isCheckin      Boolean
+  isCheckout     Boolean
+  reservationType ReservationType @default(reserve)
   adults          Int     @default(1)
   children        Int     @default(0)
-  payment_status  PaymentStatus @default(paid)
-  payment_method  PaymentMethod @default(cash)
+  paymentStatus  PaymentStatus @default(paid)
+  paymentMethod  PaymentMethod @default(cash)
   memo            String?
   status      Status     @default(active)
+  createdAt     DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   details Reservedetail[]
   payment   Payment[]
 }
 
 model Room {
-  room_id       Int      @id @default(autoincrement())
-  roomtype_id     Int?
-  room_name     String?
+  roomId             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  typeId     String @db.Uuid   
+  roomName     String?
   price         Decimal  @db.Decimal(10,2)
-  is_ac         Boolean  @default(true)
+  isAc         Boolean  @default(true)
   capacity      Int      @default(4)
   size          Int      @default(25)
-  discount_rate Int      @default(0)
-  is_booked     Boolean  @default(false)
+  discountRate Int      @default(0)
+  isBooked     Boolean  @default(false)
   status      Status     @default(active)
-  created_at    DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  roomtype    Roomtype?    @relation(fields: [roomtype_id], references: [roomtype_id])
+  roomtype    Roomtype?    @relation(fields: [typeId], references: [typeId])
   pictures Roompicture[]
   reservedetails  Reservedetail[]
   sales    Sale[]
 }
 
 model Roomtype {
-  roomtype_id      Int    @id    @default(autoincrement())
-  type_name     String    @unique
-  type_code     String    @unique
+  typeId      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name     String    @unique
+  code     String    @unique
   status   Status  @default(active)
 
   rooms   Room[]
 }
 
 model Roompicture {
-  roompicture_id Int      @id @default(autoincrement())
-  room_id         Int
+  roompictureId       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  roomId        String @db.Uuid
   picture         String
-  created_at      DateTime @default(now())
   status   Status  @default(active)
+  createdAt      DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  room Room @relation(fields: [room_id], references: [room_id])
+  room Room @relation(fields: [roomId], references: [roomId])
 }
 
 model Product {
-  product_id        Int      @id @default(autoincrement())
-  product_name      String
-  product_code      String?  
-  category_id Int?
+  productId              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productName      String
+  productCode      String?  
+  categoryId String @db.Uuid 
   picture           String?  
   price             Decimal  @db.Decimal(10,2)  @default(0.00)
-  discount_rate     Int      @default(0)
+  discountRate     Int      @default(0)
   status      Status     @default(active)
-  created_at         DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  category  Category? @relation(fields: [category_id], references: [category_id])
+  category  Category? @relation(fields: [categoryId], references: [categoryId])
   stocks    Productstock[]
   saledetails      Saledetail[]
   cart   Cart[]
 }
 
 model Category {
-  category_id Int      @id @default(autoincrement())
+  categoryId       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   picture             String?  
-  category_name       String
-  category_code       String?
+  categoryName       String
+  categoryCode       String?
   memo                String?  
   status      Status     @default(active)
-  created_at           DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   products    Product[]
 }
 
 model Cart {
-  cart_id    Int   @id   @default(autoincrement())
-  auth_id   Int
-  product_id     Int   
+  cartId  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authId   String @db.Uuid
+  productId    String @db.Uuid
   quantity   Int 
   status   Status  @default(active)
-  created_at    DateTime    @default(now())
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime @updatedAt
 
-  product   Product  @relation(fields: [product_id], references: [product_id])
-  auth   Auth  @relation(fields: [auth_id], references: [auth_id])
+  product   Product  @relation(fields: [productId], references: [productId])
+  auth   Auth  @relation(fields: [authId], references: [authId])
   note  Cartnote[]
 }
 
 model Cartnote {
-  cartnote_id   Int   @id    @default(autoincrement())
-  cart_id   Int
+  cartnoteId  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cartId   String @db.Uuid
   note   String
   status   Status  @default(active)
 
-  cart  Cart   @relation(fields: [cart_id], references: [cart_id])
+  cart  Cart   @relation(fields: [cartId], references: [cartId])
 }
 
 model Productstock {
-  productstock_id Int      @id @default(autoincrement())
-  product_id       Int?
-  supplier_id      Int?
-  inv_number       String?
-  product_add      Int      @default(0)
-  add_price        Decimal   @db.Decimal(12,2)  @default(0.00)
-  add_date         DateTime?
+  productstockId       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productId       String @db.Uuid
+  supplierId      String @db.Uuid
+  invNumber       String?
+  productAdd      Int      @default(0)
+  addPrice        Decimal   @db.Decimal(12,2)  @default(0.00)
+  addDate         DateTime?
   memo             String?
   status      Status     @default(active)
-  created_at        DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  product    Product?     @relation(fields: [product_id], references: [product_id])
-  supplier     Supplier?    @relation(fields: [supplier_id], references: [supplier_id])
+  product    Product?     @relation(fields: [productId], references: [productId])
+  supplier     Supplier?    @relation(fields: [supplierId], references: [supplierId])
 }
 
 model Supplier {
-  supplier_id   Int      @id @default(autoincrement())
-  supplier_name String
-  company_name  String?
+  supplierId         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  supplierName String
+  companyName  String?
   phone         String?
   email         String?
   address       String?
   status      Status     @default(active)
-  created_at     DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   stocks     Productstock[]
 }
 
 model Sale {
-  sale_id       Int      @id @default(autoincrement())
-  employee_id   Int
-  room_id       Int?
-  customer_id   Int?
-  sale_date     DateTime    @default(now())
+  saleId             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeId   String @db.Uuid
+  roomId       String @db.Uuid
+  customerId   String @db.Uuid
+  saleDate     DateTime    @default(now())
   amount        Decimal   @db.Decimal(12,2)
   status      Status     @default(active)
-  created_at     DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  room     Room?    @relation(fields: [room_id], references: [room_id])
-  employee    Employee      @relation(fields: [employee_id], references: [employee_id])
-  customer    Customer?   @relation(fields: [customer_id], references: [customer_id])
+  room     Room?    @relation(fields: [roomId], references: [roomId])
+  employee    Employee      @relation(fields: [employeeId], references: [employeeId])
+  customer    Customer?   @relation(fields: [customerId], references: [customerId])
   saledetails     Saledetail[]
   payment   Payment[]
 }
 
 model Saledetail {
-  saledetail_id Int      @id @default(autoincrement())
-  sale_id        Int
-  product_id     Int
+  saledetailId       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  saleId        String @db.Uuid
+  productId     String @db.Uuid
   quantity       Int
   amount         Decimal   @db.Decimal(12,2)
   status   Status  @default(active)
-  created_at      DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  sale Sale @relation(fields: [sale_id], references: [sale_id])
-  product    Product  @relation(fields: [product_id], references: [product_id])
+  sale Sale @relation(fields: [saleId], references: [saleId])
+  product    Product  @relation(fields: [productId], references: [productId])
 }
 
 model Payment {
-  payment_id    Int   @id     @default(autoincrement())
-  employee_id Int 
-  sale_id   Int?   
-  reservation_id   Int?
+  paymentId    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeId String @db.Uuid 
+  saleId   String @db.Uuid
+  reservationId   String @db.Uuid
   invoice   String?
   hash  String
   fromAccountId   String
@@ -388,100 +422,107 @@ model Payment {
   amount    Decimal   @db.Decimal(12,2)
   externalRef  String
   status      Status     @default(active)
-  created_at    DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime @updatedAt
 
-  sale   Sale?    @relation(fields: [sale_id], references: [sale_id])
-  reservation    Reservation?    @relation(fields: [reservation_id], references: [reservation_id])
-  employee   Employee     @relation(fields: [employee_id], references: [employee_id])
+  sale   Sale?    @relation(fields: [saleId], references: [saleId])
+  reservation    Reservation?    @relation(fields: [reservationId], references: [reservationId])
+  employee   Employee     @relation(fields: [employeeId], references: [employeeId])
 }
 
 model Shift {
-  shift_id        Int      @id @default(autoincrement())
-  employee_id     Int?
-  shift_code      String
-  open_khmer_riel Decimal   @db.Decimal(12,2)  @default(0.00)
-  open_us_dollar  Decimal   @db.Decimal(12,2)  @default(0.00)
-  open_time       DateTime    @default(now())
-  close_khmer_riel Decimal?  @db.Decimal(12,2)  @default(0.00)
-  close_us_dollar  Decimal?  @db.Decimal(12,2)  @default(0.00)
-  close_time      DateTime?   
+  shiftId              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeId    String @db.Uuid
+  shiftCode      String
+  openKhmerRiel Decimal   @db.Decimal(12,2)  @default(0.00)
+  openUsDollar  Decimal   @db.Decimal(12,2)  @default(0.00)
+  openTime       DateTime    @default(now())
+  closeKhmerRiel Decimal?  @db.Decimal(12,2)  @default(0.00)
+  closeUsDollar  Decimal?  @db.Decimal(12,2)  @default(0.00)
+  closeTime      DateTime?   
   status      Status     @default(active)
-  created_at      DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   banknotes    Banknote[]
-  employee    Employee?   @relation(fields: [employee_id], references: [employee_id])
+  employee    Employee?   @relation(fields: [employeeId], references: [employeeId])
 }
 
 
 model Banknote {
-  banknote_id Int @id @default(autoincrement())
-  shift_id    Int
-  khmer_100    Int? @default(0)
-  khmer_500    Int? @default(0)
-  khmer_1K     Int? @default(0)
-  khmer_2K     Int? @default(0)
-  khmer_5K     Int? @default(0)
-  khmer_10K    Int? @default(0)
-  khmer_15K    Int? @default(0)
-  khmer_20K    Int? @default(0)
-  khmer_30K    Int? @default(0)
-  khmer_50K    Int? @default(0)
-  khmer_100K   Int? @default(0)
-  khmer_200K   Int? @default(0)
-  us_1         Int? @default(0)
-  us_5         Int? @default(0)
-  us_10        Int? @default(0)
-  us_20        Int? @default(0)
-  us_50        Int? @default(0)
-  us_100       Int? @default(0)
+  banknoteId  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  shiftId    String @db.Uuid
+  khmer100    Int? @default(0)
+  khmer500    Int? @default(0)
+  khmer1K     Int? @default(0)
+  khmer2K     Int? @default(0)
+  khmer5K     Int? @default(0)
+  khmer10K    Int? @default(0)
+  khmer15K    Int? @default(0)
+  khmer20K    Int? @default(0)
+  khmer30K    Int? @default(0)
+  khmer50K    Int? @default(0)
+  khmer100K   Int? @default(0)
+  khmer200K   Int? @default(0)
+  us1         Int? @default(0)
+  us5         Int? @default(0)
+  us10        Int? @default(0)
+  us20        Int? @default(0)
+  us50        Int? @default(0)
+  us100       Int? @default(0)
   status      Status     @default(active)
-  created_at    DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  shift  Shift   @relation(fields: [shift_id], references: [shift_id])
+  shift  Shift   @relation(fields: [shiftId], references: [shiftId])
 }
 
 model Groupmessage {
-  groupmessage_id     Int @id @default(autoincrement())
-  employee_id   Int? 
+  groupmessageId      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeId   String @db.Uuid
   content  String
   time  DateTime
   status   Status  @default(active)
-  created_at   DateTime   @default(now())
+  createdAt   DateTime   @default(now())
+  updatedAt    DateTime @updatedAt
 
-  employee    Employee?   @relation(fields: [employee_id], references: [employee_id])
+  employee    Employee?   @relation(fields: [employeeId], references: [employeeId])
 }
 
 // ! Log
 model Log {
-  id         Int      @id @default(autoincrement())
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   method     String
   url        String
   status     Int
-  response_time Float
+  responseTime Float
   ip         String
-  user_agent String?
-  created_at DateTime @default(now())
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model AuthLog {
-  id         Int      @id @default(autoincrement())
-  auth_id  Int
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authId  String @db.Uuid
   method     String
   url        String
   status     Int
-  response_time Float
+  responseTime Float
   ip         String
-  user_agent String?
-  created_at DateTime @default(now())
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  auth  Auth   @relation(fields: [auth_id], references: [auth_id])
+  auth  Auth   @relation(fields: [authId], references: [authId])
 }
 
 
 // ! test model
 model Image {
-  id        Int      @id @default(autoincrement())
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   title     String
   imageUrl  String
   createdAt DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

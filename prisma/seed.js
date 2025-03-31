@@ -37,9 +37,9 @@ const main = async () => {
   // for (const city of CITY) {
   //   await prisma.city.upsert({
   //     where: {
-  //       city_name_state_id: {
-  //         city_name: city.city_name,
-  //         state_id: city.state_id,
+  //       name_stateId: {
+  //         name: city.name,
+  //         stateId: city.stateId,
   //       },
   //     },
   //     update: {},

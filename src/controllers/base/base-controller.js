@@ -12,7 +12,7 @@ const baseSelect = async (
 ) => {
   const {
     order = "desc",
-    status = "active",
+    status = "",
     where,
     page,
     limit,
@@ -20,13 +20,10 @@ const baseSelect = async (
   } = queryParams;
 
   try {
-    const whereCondition = status === "all" ? {} : { status };
+    const whereCondition = status === "all" ? {} : { status: "active" };
     if (id) whereCondition[`${model}Id`] = id;
 
-    if (where && whereField) {
-      const whereValue = !isNaN(where) ? parseInt(where) : where;
-      whereCondition[whereField] = whereValue;
-    }
+    if (where && whereField) whereCondition[whereField] = where;
 
     const pageNumber = page ? parseInt(page, 10) : null;
     const pageSize = limit ? parseInt(limit, 10) : null;

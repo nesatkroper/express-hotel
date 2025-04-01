@@ -1,5 +1,5 @@
-const path = require("path");
 const fs = require("fs");
+const path = require("path");
 const prisma = require("@/provider/client");
 const { modelSchemas } = require("./base-schema");
 
@@ -7,7 +7,7 @@ const baseSelect = async (
   model,
   id,
   queryParams,
-  orderField = "Id",
+  orderField = "id",
   whereField = null
 ) => {
   const {
@@ -20,10 +20,12 @@ const baseSelect = async (
   } = queryParams;
 
   try {
-    const whereCondition = status === "all" ? {} : { status: "active" };
+    let whereCondition = {};
     if (id) whereCondition[`${model}Id`] = id;
-
     if (where && whereField) whereCondition[whereField] = where;
+
+    if (status && status !== "all")
+      whereCondition.status = status === "" ? "active" : status;
 
     const pageNumber = page ? parseInt(page, 10) : null;
     const pageSize = limit ? parseInt(limit, 10) : null;
@@ -75,6 +77,19 @@ const baseSelect = async (
     }
   } catch (err) {
     console.log("Error in baseSelect:", err);
+    if (
+      err.code === "P2009" ||
+      (typeof err.message === "string" && err.message.includes("status"))
+    )
+      throw new Error(
+        `Model ${model} does not support status filtering. Try again without status parameters`
+      );
+
+    if (typeof err.message === "string" && err.message.includes("orderBy"))
+      throw new Error(
+        `Invalid orderBy field '${orderField}' for model '${model}'. Check your schema for valid fields.`
+      );
+
     throw new Error(err.message);
   }
 };

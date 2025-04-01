@@ -10,7 +10,12 @@ const model = "state";
 
 const select = async (req, res) => {
   try {
-    const result = await baseSelect(model, req.params.id, req.query);
+    const result = await baseSelect(
+      model,
+      req.params.id,
+      req.query,
+      `${model}Id`
+    );
 
     if (!result || (Array.isArray(result) && !result.length)) {
       return res.status(404).json({ msg: "No data found" });

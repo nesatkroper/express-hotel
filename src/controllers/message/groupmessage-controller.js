@@ -1,5 +1,5 @@
 const prisma = require("@/provider/client");
-const { baseSelect } = require("../base/base-controller");
+const { baseSelect } = require("../base");
 
 const select = async (req, res) => {
   try {

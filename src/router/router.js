@@ -2,7 +2,7 @@ const express = require("express");
 const expressListEndpoints = require("express-list-endpoints");
 const router = express.Router();
 const routers = require("@/router/export-router");
-const { baseSelect } = require("@/controllers/base/base-controller");
+const { baseSelect } = require("@/controllers/base/convert-data");
 // const { cacheMiddleware } = require("@/middleware/cach-middleware");
 
 Object.entries(routers).forEach(([routeName, routeHandler]) => {

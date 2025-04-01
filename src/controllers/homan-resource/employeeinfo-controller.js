@@ -1,11 +1,7 @@
 const path = require("path");
 const { uploadPath } = require("@/provider/upload-path");
 
-const {
-  baseCreate,
-  baseUpdate,
-  baseDestroy,
-} = require("../base/base-controller");
+const { baseCreate, baseUpdate, baseDestroy } = require("../base");
 
 const model = "employeeinfo";
 

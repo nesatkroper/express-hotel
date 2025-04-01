@@ -7,7 +7,7 @@ const {
   baseUpdate,
   basePatch,
   baseDestroy,
-} = require("../base/base-controller");
+} = require("../base");
 
 const model = "customer";
 

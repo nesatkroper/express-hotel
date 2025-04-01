@@ -1,12 +1,10 @@
-
-
 const {
   baseSelect,
   baseCreate,
   baseUpdate,
   basePatch,
   baseDestroy,
-} = require("../base/base-controller");
+} = require("../base");
 
 const model = "productstock";
 

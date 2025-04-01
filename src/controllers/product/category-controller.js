@@ -6,7 +6,7 @@ const {
   baseUpdate,
   basePatch,
   baseDestroy,
-} = require("../base/base-controller");
+} = require("../base");
 
 const model = "category";
 const field = "category_code";

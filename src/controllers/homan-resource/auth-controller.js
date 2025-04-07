@@ -113,7 +113,7 @@ const login = async (req, res) => {
     if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
 
     const token = await generateToken(auth, req);
-    res.json({
+    res.status(200).json({
       token,
       auth,
     });
@@ -134,7 +134,7 @@ const logout = async (req, res) => {
 
     res.clearCookie("token");
 
-    return res.status(200).json({ message: "Logged out successfully." });
+    return res.status(204).json({ message: "Logged out successfully." });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Logout failed." });
@@ -146,7 +146,7 @@ const getAllAuth = async (req, res) => {
     const auths = await prismaClient.auth.findMany({
       include: { role: true, employee: true, customer: true },
     });
-    return res.json(auths);
+    return res.status(200).json(auths);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Failed to fetch auths" });
@@ -162,7 +162,7 @@ const getAuth = async (req, res) => {
 
     if (!auth) return res.status(404).json({ error: "auth not found" });
 
-    return res.json(auth);
+    return res.status(200).json(auth);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Failed to fetch auth" });

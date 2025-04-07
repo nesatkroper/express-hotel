@@ -13,7 +13,7 @@ const select = async (req, res) => {
     if (!result || (Array.isArray(result) && !result.length)) {
       return res.status(404).json({ msg: "No data found" });
     }
-    return res.status(200).json(result);
+    return res.status(201).json(result);
   } catch (err) {
     console.error("Error:", err);
     return res.status(500).json({ error: `Error: ${err.message}` });

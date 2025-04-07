@@ -30,7 +30,7 @@ const create = async (req, res) => {
       },
     });
 
-    return res.status(200).json(create);
+    return res.status(201).json(create);
   } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }
@@ -57,7 +57,7 @@ const qtyIncrease = async (req, res) => {
       },
     });
 
-    return res.status(200).json(update);
+    return res.status(201).json(update);
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: `Error :${err}` });
@@ -80,7 +80,7 @@ const qtyDecrease = async (req, res) => {
         where: { cart_id: parseInt(cart_id) },
       });
 
-      return res.status(200).json(destroy);
+      return res.status(201).json(destroy);
     } else {
       const update = await prisma.cart.update({
         where: {
@@ -91,7 +91,7 @@ const qtyDecrease = async (req, res) => {
         },
       });
 
-      return res.status(200).json(update);
+      return res.status(201).json(update);
     }
   } catch (err) {
     console.log(err);
@@ -107,7 +107,7 @@ const destroy = async (req, res) => {
       where: { cart_id: parseInt(cart_id) },
     });
 
-    return res.status(200).json(destroy);
+    return res.status(201).json(destroy);
   } catch (err) {
     return res.status(500).json({ error: `Error :${err}` });
   }

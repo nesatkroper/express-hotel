@@ -8,15 +8,19 @@ const path = require("path");
 const http = require("http");
 const prisma = require("@/provider/client");
 const bodyParser = require("body-parser");
-<<<<<<< HEAD
 const protectedStatic = require("./src/middleware/static-middleware");
 const authJWT = require("./src/middleware/auth-middleware");
-=======
-const { limiter } = require("@/middleware/limit-middleware")
->>>>>>> a0616dcd170868a42ef7aaceae6786da22a600eb
+const { limiter } = require("@/middleware/limit-middleware");
 const { Server } = require("socket.io");
-const { setupSocket } = require("@/controllers/realtime/setup-socket-controller");
-const { allowedOrigins, allowedHeaders, methods, transports } = require("@/constants/cors")
+const {
+  setupSocket,
+} = require("@/controllers/realtime/setup-socket-controller");
+const {
+  allowedOrigins,
+  allowedHeaders,
+  methods,
+  transports,
+} = require("@/constants/cors");
 
 const dbLogger = require("@/middleware/logger-middleware");
 const authLogger = require("@/middleware/auth-logger-middleware");
@@ -80,7 +84,12 @@ app.use((req, res, next) => {
 
 setupSocket(io, prisma);
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`Server running on port http://localhost:${PORT}`);
-});
+try {
+  const PORT = process.env.PORT || 5000;
+  server.listen(PORT, () => {
+    console.log(`Server running on port http://localhost:${PORT}`);
+  });
+} catch (error) {
+  console.error("Error :", error);
+  process.exit(1);
+}

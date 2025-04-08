@@ -9,7 +9,6 @@ const {
 const model = "department";
 const field = "departmentCode";
 const prefix = "DEP";
-const pad = 4;
 
 const select = async (req, res) => {
   try {
@@ -34,16 +33,11 @@ const create = async (req, res) => {
   try {
     const data = { ...req.body };
 
-    const result = await baseCreate(
-      model,
-      data,
-      {
-        field,
-        prefix,
-        idField: `${model}Id`,
-      },
-      pad
-    );
+    const result = await baseCreate(model, data, {
+      field,
+      prefix,
+      idField: `${model}Id`,
+    });
     return res.status(201).json(result);
   } catch (err) {
     console.error(`Error creating ${model}:`, err);
@@ -57,6 +51,7 @@ const update = async (req, res) => {
 
     return res.status(201).json(result);
   } catch (err) {
+    console.error(err);
     return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };
@@ -67,6 +62,7 @@ const patch = async (req, res) => {
 
     return res.status(201).json(result);
   } catch (err) {
+    console.error(err);
     return res.status(500).json({ error: `Error :${err}` });
   }
 };
@@ -76,6 +72,7 @@ const destroy = async (req, res) => {
     const result = await baseDestroy(model, req.params.id);
     return res.status(201).json(result);
   } catch (err) {
+    console.error(err);
     return res.status(500).json({ error: `Error: ${err.message}` });
   }
 };

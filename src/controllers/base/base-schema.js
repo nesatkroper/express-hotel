@@ -148,7 +148,7 @@ const modelSchemas = {
     supplierId: "String",
     invNumber: "String",
     productAdd: "Int",
-    add_price: "Decimal",
+    addPrice: "Decimal",
     addDate: "Date",
     memo: "String",
     status: "String",

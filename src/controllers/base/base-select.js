@@ -1,7 +1,7 @@
 const prisma = require("@/provider/client");
 
 /**
- * Retrieves records with advanced query capabilities
+ * @Retrieves records with advanced query capabilities
  * @param {string} model - Prisma model name
  * @param {string|number} [id] - Optional record ID for single record lookup
  * @param {object} [queryParams] - Query parameters
@@ -15,131 +15,146 @@ const prisma = require("@/provider/client");
  * @param {string} [whereField] - Field for additional where condition
  * @returns {Promise<object>} Query results with optional pagination metadata
  */
-const baseSelect = async (model, id, queryParams = {}, orderField = "id", whereField = null) => { // Validate model exists
-    if (! prisma[model]) {
-        throw new Error(`Prisma model "${model}" not found`);
-    }
+const baseSelect = async (
+  model,
+  id,
+  queryParams = {},
+  orderField = "id",
+  whereField = null
+) => {
+  // @Validate model exists
+  if (!prisma[model]) {
+    throw new Error(`Prisma model "${model}" not found`);
+  }
 
-    const {
-        order = "desc",
-        status = "",
-        where,
-        page,
-        limit,
-        ...relations
-    } = queryParams;
+  const {
+    order = "desc",
+    status = "",
+    where,
+    page,
+    limit,
+    ...relations
+  } = queryParams;
 
-    try {
-        return await prisma.$transaction(async (tx) => { // Build where condition
-            const whereCondition = {};
+  try {
+    return await prisma.$transaction(async (tx) => {
+      // @Build where condition
+      const whereCondition = {};
 
-            if (id) {
-                whereCondition[`${model}Id`] = id;
-            }
+      if (id) {
+        whereCondition[`${model}Id`] = id;
+      }
 
-            if (where && whereField) {
-                whereCondition[whereField] = where;
-            }
+      if (where && whereField) {
+        whereCondition[whereField] = where;
+      }
 
-            // Handle status filtering if the model supports it
-            if (status && status !== "all") {
-                try { // Check if model has status field
-                    const modelFields = Object.keys(tx[model].fields);
-                    if (modelFields.includes('status')) {
-                        whereCondition.status = status === "" ? "active" : status;
-                    }
-                } catch { // Silently ignore if we can't check fields
-                }}
+      // @Handle status filtering if the model supports it
+      if (status && status !== "all") {
+        try {
+          // @Check if model has status field
+          const modelFields = Object.keys(tx[model].fields);
+          if (modelFields.includes("status")) {
+            whereCondition.status = status === "" ? "active" : status;
+          }
+        } catch {
+          // @Silently ignore if we can't check fields
+        }
+      }
 
-            // Handle pagination
-            const pageNumber = page ? parseInt(page, 10) : null;
-            const pageSize = limit ? parseInt(limit, 10) : null;
-            const skip = pageNumber && pageSize ? (pageNumber - 1) * pageSize : undefined;
-            const take = pageSize || undefined;
+      // @Handle pagination
+      const pageNumber = page ? parseInt(page, 10) : null;
+      const pageSize = limit ? parseInt(limit, 10) : null;
+      const skip =
+        pageNumber && pageSize ? (pageNumber - 1) * pageSize : undefined;
+      const take = pageSize || undefined;
 
-            // Process relation includes
-            const include = {};
-            for (const [key, value] of Object.entries(relations)) {
-                include[key] = value === "true";
-            }
+      // @Process relation includes
+      const include = {};
+      for (const [key, value] of Object.entries(relations)) {
+        include[key] = value === "true";
+      }
 
-            if (id) { // Single record lookup
-                const selectData = await tx[model].findUnique({
-                    where: whereCondition,
-                    include: Object.keys(include).length ? include : undefined
-                });
-
-                if (! selectData) {
-                    throw new Error(`${model} with ID ${id} not found`);
-                }
-
-                return {data: selectData};
-            } else { // Multiple records with pagination
-                const [items, total] = await Promise.all([
-                    tx[model].findMany(
-                        {
-                            where: whereCondition,
-                            include: Object.keys(include).length ? include : undefined,
-                            orderBy: {
-                                [orderField]: order
-                            },
-                            skip,
-                            take
-                        }
-                    ),
-                    tx[model].count(
-                        {where: whereCondition}
-                    ),
-                ]);
-
-                if (pageNumber && pageSize) {
-                    return {
-                        data: items,
-                        meta: {
-                            total,
-                            page: pageNumber,
-                            limit: pageSize,
-                            totalPages: Math.ceil(total / pageSize),
-                            hasNextPage: pageNumber * pageSize < total,
-                            hasPreviousPage: pageNumber > 1
-                        }
-                    };
-                }
-
-                return {data: items};
-            }
-        });
-    } catch (err) {
-        console.error(`Error in baseSelect for model ${model}:`, {
-            error: err.message,
-            id,
-            queryParams
+      if (id) {
+        // @Single record lookup
+        const selectData = await tx[model].findUnique({
+          where: whereCondition,
+          include: Object.keys(include).length ? include : undefined,
         });
 
-        if (err.code === "P2009") {
-            throw new Error(`Invalid query syntax for model ${model}. Check your parameters.`);
+        if (!selectData) {
+          throw new Error(`${model} with ID ${id} not found`);
         }
 
-        if (err.message.includes("orderBy")) {
-            throw new Error(`Cannot order by '${orderField}' in model '${model}'. Valid fields are: ${
-                Object.keys(prisma[model].fields).join(", ")
-            }`);
+        return { data: selectData };
+      } else {
+        // @Multiple records with pagination
+        const [items, total] = await Promise.all([
+          tx[model].findMany({
+            where: whereCondition,
+            include: Object.keys(include).length ? include : undefined,
+            orderBy: {
+              [orderField]: order,
+            },
+            skip,
+            take,
+          }),
+          tx[model].count({ where: whereCondition }),
+        ]);
+
+        if (pageNumber && pageSize) {
+          return {
+            data: items,
+            meta: {
+              total,
+              page: pageNumber,
+              limit: pageSize,
+              totalPages: Math.ceil(total / pageSize),
+              hasNextPage: pageNumber * pageSize < total,
+              hasPreviousPage: pageNumber > 1,
+            },
+          };
         }
 
-        if (err.message.includes("include")) {
-            throw new Error(`Invalid relation included for model ${model}. Valid relations are: ${
-                Object.keys(prisma[model].relations).join(", ")
-            }`);
-        }
+        return { data: items };
+      }
+    });
+  } catch (err) {
+    console.error(`Error in baseSelect for model ${model}:`, {
+      error: err.message,
+      id,
+      queryParams,
+    });
 
-        throw err;
+    if (err.code === "P2009") {
+      throw new Error(
+        `Invalid query syntax for model ${model}. Check your parameters.`
+      );
     }
+
+    if (err.message.includes("orderBy")) {
+      throw new Error(
+        `Cannot order by '${orderField}' in model '${model}'. Valid fields are: ${Object.keys(
+          prisma[model].fields
+        ).join(", ")}`
+      );
+    }
+
+    if (err.message.includes("include")) {
+      throw new Error(
+        `Invalid relation included for model ${model}. Valid relations are: ${Object.keys(
+          prisma[model].relations
+        ).join(", ")}`
+      );
+    }
+
+    throw err;
+  }
 };
 
 module.exports = {
-    baseSelect
+  baseSelect,
 };
-
 
 // const prisma = require("@/provider/client");
 

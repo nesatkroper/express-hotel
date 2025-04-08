@@ -11,7 +11,7 @@ const createInfo = async (req, res) => {
     const data = { ...req.body, picture };
 
     const result = await baseCreate(model, data);
-    return res.status(200).json(result);
+    return res.status(201).json(result);
   } catch (err) {
     console.error(`Error creating ${model}:`, err);
     return res.status(500).json({ error: `Error :${err}` });
@@ -28,7 +28,7 @@ const updateInfo = async (req, res) => {
       uploadPath
     );
 
-    return res.status(200).json(result);
+    return res.status(201).json(result);
   } catch (err) {
     return res.status(500).json({ error: `Error: ${err.message}` });
   }
@@ -37,7 +37,7 @@ const updateInfo = async (req, res) => {
 const destroyInfo = async (req, res) => {
   try {
     const result = await baseDestroy(model, req.params.id);
-    return res.status(200).json(result);
+    return res.status(201).json(result);
   } catch (err) {
     return res.status(500).json({ error: `Error: ${err.message}` });
   }

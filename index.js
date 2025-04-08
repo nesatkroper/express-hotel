@@ -9,6 +9,8 @@ const http = require("http");
 const rateLimit = require("express-rate-limit");
 const prisma = require("@/provider/client");
 const bodyParser = require("body-parser");
+const protectedStatic = require("./src/middleware/static-middleware");
+const authJWT = require("./src/middleware/auth-middleware");
 const { Server } = require("socket.io");
 
 const {
@@ -67,7 +69,10 @@ app.use(
   })
 );
 
-app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
+app.use(
+  "/uploads",
+  protectedStatic(path.join(__dirname, "public/uploads"), authJWT)
+);
 app.use("/v1", router);
 
 const io = new Server(server, {

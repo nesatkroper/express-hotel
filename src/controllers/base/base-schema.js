@@ -230,9 +230,15 @@ const modelSchemas = {
   },
   groupMessage: {
     groupMessageId: "String",
-    employeeId: "String",
+    authId: "String",
     content: "String",
     time: "Date",
+  },
+  notification: {
+    notificationId: "String",
+    authId: "String",
+    title: "String",
+    content: "String",
   },
   log: {
     id: "String",

@@ -1,4 +1,9 @@
-const { create } = require("@/controllers/message/groupmessage-controller");
+const {
+  create: msgCreate,
+} = require("@/controllers/message/groupmessage-controller");
+const {
+  create: ntfCreate,
+} = require("@/controllers/notification/notification-controller");
 
 const setupSocket = (io, db) => {
   io.on("connection", (socket) => {
@@ -8,11 +13,12 @@ const setupSocket = (io, db) => {
       console.log("Received message:", message);
       io.emit("receiveMessage", message);
     });
+
     socket.on("sendGroup", async (message) => {
       io.emit("receiveGroup", message);
 
       try {
-        await create(message);
+        await msgCreate(message);
       } catch (error) {
         console.error("Error saving message:", error);
       }
@@ -23,7 +29,7 @@ const setupSocket = (io, db) => {
       io.emit("receiveNotification", message);
 
       try {
-        await create(message);
+        await ntfCreate(message);
       } catch (error) {
         console.error("Error saving message:", error);
       }

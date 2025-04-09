@@ -106,6 +106,8 @@ model Auth {
   customer  Customer? @relation(fields: [customerId], references: [customerId])
   cart   Cart[]
   logs   AuthLog[]
+  groupchat   Groupmessage[]
+  notification   Notification[]
 
   @@index([email])
 }
@@ -144,7 +146,6 @@ model Employee {
   sales    Sale[]
   shift     Shift[]
   attendances Attendance[]
-  groupchat   Groupmessage[]
   payment  Payment[]
 }
 
@@ -479,14 +480,26 @@ model Banknote {
 
 model Groupmessage {
   groupmessageId      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  employeeId   String @db.Uuid
+  authId   String? @db.Uuid
   content  String
   time  DateTime
   status   Status  @default(active)
   createdAt   DateTime   @default(now())
   updatedAt    DateTime @updatedAt
 
-  employee    Employee?   @relation(fields: [employeeId], references: [employeeId])
+  auth    Auth?   @relation(fields: [authId], references: [authId])
+}
+
+model Notification {
+  notificationId     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authId   String? @db.Uuid
+  title     String
+  content   String
+  status   Status  @default(active)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  auth    Auth?   @relation(fields: [authId], references: [authId])
 }
 
 // ! Log

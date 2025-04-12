@@ -1,8 +1,12 @@
 const express = require("express");
 const router = express.Router();
 
-const { select } = require("@/controllers/message/groupmessage-controller");
+const {
+  select,
+  patch,
+} = require("@/controllers/message/groupmessage-controller");
 
 router.get("/group/:id?", select);
+router.patch("/group/:id", patch);
 
 module.exports = router;

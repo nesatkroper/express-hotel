@@ -12,7 +12,6 @@ const {
 const model = "product";
 const field = "product_code";
 const prefix = "PRO";
-const pad = 5;
 
 const select = async (req, res) => {
   try {
@@ -20,7 +19,7 @@ const select = async (req, res) => {
       model,
       req.params.id,
       req.query,
-      `${model}_id`
+      `createdAt`
     );
 
     if (!result || (Array.isArray(result) && !result.length)) {
@@ -38,16 +37,11 @@ const create = async (req, res) => {
     const picture = req.file ? path.basename(req.file.path) : null;
     const data = { ...req.body, picture };
 
-    const result = await baseCreate(
-      model,
-      data,
-      {
-        field,
-        prefix,
-        idField: `${model}_id`,
-      },
-      pad
-    );
+    const result = await baseCreate(model, data, {
+      field,
+      prefix,
+      idField: `${model}_id`,
+    });
     return res.status(201).json(result);
   } catch (err) {
     console.error(`Error creating ${model}:`, err);

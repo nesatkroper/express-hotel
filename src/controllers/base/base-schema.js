@@ -195,7 +195,7 @@ const modelSchemas = {
   },
   shift: {
     shiftId: "String",
-    employeeId: "String",
+    authId: "String",
     shiftCode: "String",
     openKhmerRiel: "Decimal",
     openUsDollar: "Decimal",

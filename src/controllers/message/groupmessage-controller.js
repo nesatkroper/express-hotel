@@ -1,5 +1,5 @@
 const prisma = require("@/provider/client");
-const { baseSelect } = require("../base");
+const { baseSelect, basePatch } = require("../base");
 
 const select = async (req, res) => {
   try {
@@ -36,4 +36,13 @@ const create = async (message) => {
   }
 };
 
-module.exports = { select, create };
+const patch = async (message) => {
+  const result = await basePatch(
+    "groupmessage",
+    message.id,
+    message,
+    "updatedAt"
+  );
+};
+
+module.exports = { select, create, patch };

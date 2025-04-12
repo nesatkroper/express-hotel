@@ -108,6 +108,7 @@ model Auth {
   logs   AuthLog[]
   groupchat   Groupmessage[]
   notification   Notification[]
+  shift   Shift[] 
 
   @@index([email])
 }
@@ -144,7 +145,6 @@ model Employee {
   department Department? @relation(fields: [departmentId], references: [departmentId])
   reservedetails   Reservedetail[]
   sales    Sale[]
-  shift     Shift[]
   attendances Attendance[]
   payment  Payment[]
 }
@@ -432,9 +432,8 @@ model Payment {
 }
 
 model Shift {
-  shiftId              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  employeeId    String @db.Uuid
-  shiftCode      String
+  shiftId    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authId    String @db.Uuid
   openKhmerRiel Decimal   @db.Decimal(12,2)  @default(0.00)
   openUsDollar  Decimal   @db.Decimal(12,2)  @default(0.00)
   openTime       DateTime    @default(now())
@@ -446,7 +445,7 @@ model Shift {
   updatedAt    DateTime @updatedAt
 
   banknotes    Banknote[]
-  employee    Employee?   @relation(fields: [employeeId], references: [employeeId])
+  auth    Auth?   @relation(fields: [authId], references: [authId])
 }
 
 

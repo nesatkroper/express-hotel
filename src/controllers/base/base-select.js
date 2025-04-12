@@ -15,6 +15,7 @@ const prisma = require("@/provider/client");
  * @param {string} [whereField] - Field for additional where condition
  * @returns {Promise<object>} Query results with optional pagination metadata
  */
+
 const baseSelect = async (
   model,
   id,
@@ -37,88 +38,88 @@ const baseSelect = async (
   } = queryParams;
 
   try {
-    return await prisma.$transaction(async (tx) => {
-      // @Build where condition
-      const whereCondition = {};
+    // return await prisma.$transaction(async (tx) => {
+    const tx = prisma;
+    const whereCondition = {};
 
-      if (id) {
-        whereCondition[`${model}Id`] = id;
-      }
+    if (id) {
+      whereCondition[`${model}Id`] = id;
+    }
 
-      if (where && whereField) {
-        whereCondition[whereField] = where;
-      }
+    if (where && whereField) {
+      whereCondition[whereField] = where;
+    }
 
-      // @Handle status filtering if the model supports it
-      if (status && status !== "all") {
-        try {
-          // @Check if model has status field
-          const modelFields = Object.keys(tx[model].fields);
-          if (modelFields.includes("status")) {
-            whereCondition.status = status === "" ? "active" : status;
-          }
-        } catch {
-          // @Silently ignore if we can't check fields
+    // @Handle status filtering if the model supports it
+    if (status && status !== "all") {
+      try {
+        // @Check if model has status field
+        const modelFields = Object.keys(tx[model].fields);
+        if (modelFields.includes("status")) {
+          whereCondition.status = status === "" ? "active" : status;
         }
+      } catch {
+        // @Silently ignore if we can't check fields
+      }
+    }
+
+    // @Handle pagination
+    const pageNumber = page ? parseInt(page, 10) : null;
+    const pageSize = limit ? parseInt(limit, 10) : null;
+    const skip =
+      pageNumber && pageSize ? (pageNumber - 1) * pageSize : undefined;
+    const take = pageSize || undefined;
+
+    // @Process relation includes
+    const include = {};
+    for (const [key, value] of Object.entries(relations)) {
+      include[key] = value === "true";
+    }
+
+    if (id) {
+      // @Single record lookup
+      const selectData = await tx[model].findUnique({
+        where: whereCondition,
+        include: Object.keys(include).length ? include : undefined,
+      });
+
+      if (!selectData) {
+        throw new Error(`${model} with ID ${id} not found`);
       }
 
-      // @Handle pagination
-      const pageNumber = page ? parseInt(page, 10) : null;
-      const pageSize = limit ? parseInt(limit, 10) : null;
-      const skip =
-        pageNumber && pageSize ? (pageNumber - 1) * pageSize : undefined;
-      const take = pageSize || undefined;
-
-      // @Process relation includes
-      const include = {};
-      for (const [key, value] of Object.entries(relations)) {
-        include[key] = value === "true";
-      }
-
-      if (id) {
-        // @Single record lookup
-        const selectData = await tx[model].findUnique({
+      return { data: selectData };
+    } else {
+      // @Multiple records with pagination
+      const [items, total] = await Promise.all([
+        tx[model].findMany({
           where: whereCondition,
           include: Object.keys(include).length ? include : undefined,
-        });
+          orderBy: {
+            [orderField]: order,
+          },
+          skip,
+          take,
+        }),
+        tx[model].count({ where: whereCondition }),
+      ]);
 
-        if (!selectData) {
-          throw new Error(`${model} with ID ${id} not found`);
-        }
-
-        return { data: selectData };
-      } else {
-        // @Multiple records with pagination
-        const [items, total] = await Promise.all([
-          tx[model].findMany({
-            where: whereCondition,
-            include: Object.keys(include).length ? include : undefined,
-            orderBy: {
-              [orderField]: order,
-            },
-            skip,
-            take,
-          }),
-          tx[model].count({ where: whereCondition }),
-        ]);
-
-        if (pageNumber && pageSize) {
-          return {
-            data: items,
-            meta: {
-              total,
-              page: pageNumber,
-              limit: pageSize,
-              totalPages: Math.ceil(total / pageSize),
-              hasNextPage: pageNumber * pageSize < total,
-              hasPreviousPage: pageNumber > 1,
-            },
-          };
-        }
-
-        return { data: items };
+      if (pageNumber && pageSize) {
+        return {
+          data: items,
+          meta: {
+            total,
+            page: pageNumber,
+            limit: pageSize,
+            totalPages: Math.ceil(total / pageSize),
+            hasNextPage: pageNumber * pageSize < total,
+            hasPreviousPage: pageNumber > 1,
+          },
+        };
       }
-    });
+
+      return { data: items };
+    }
+    // });
   } catch (err) {
     console.error(`Error in baseSelect for model ${model}:`, {
       error: err.message,

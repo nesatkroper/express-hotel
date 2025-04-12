@@ -14,7 +14,7 @@ const select = async (req, res) => {
       model,
       req.params.id,
       req.query,
-      `${model}_id`
+      `createdAt`
     );
 
     if (!result || (Array.isArray(result) && !result.length)) {

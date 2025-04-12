@@ -131,8 +131,8 @@ model Employee {
   gender         Gender   @default(male)
   dob            DateTime?
   phone          String?  @unique
-  positionId    String @db.Uuid    @unique
-  departmentId    String @db.Uuid  @unique
+  positionId    String @db.Uuid    
+  departmentId    String @db.Uuid  
   salary         Decimal  @db.Decimal(10,2)
   hiredDate     DateTime?
   status Status @default(active)

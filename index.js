@@ -84,12 +84,18 @@ app.use((req, res, next) => {
 
 setupSocket(io, prisma);
 
-try {
-  const PORT = process.env.PORT || 5000;
-  server.listen(PORT, () => {
-    console.log(`Server running on port http://localhost:${PORT}`);
-  });
-} catch (error) {
-  console.error("Error :", error);
-  process.exit(1);
-}
+const startServer = async () => {
+  try {
+    const PORT = process.env.PORT || 5000;
+    await prisma.$connect();
+    console.log("✅ Prisma connected to the database");
+
+    server.listen(PORT, () => {
+      console.log(`✅ Server running on port http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("Error :", error);
+  }
+};
+
+startServer();

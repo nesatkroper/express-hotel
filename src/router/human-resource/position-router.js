@@ -8,7 +8,7 @@ const {
   update,
   patch,
   destroy,
-} = require("@/controllers/homan-resource/position-controller");
+} = require("@/controllers/human-resource/position-controller");
 
 router.get("/:id?", select);
 router.post("/", create);

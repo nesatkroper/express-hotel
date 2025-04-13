@@ -27,11 +27,7 @@ out/
 coverage/
 .DS_Store
 
-# System Files
-Thumbs.db
-.vscode/
-.idea/
-*.swp
+
 
 # Dependencies lock files (optional, if not used)
 package-lock.json
@@ -41,7 +37,5 @@ pnpm-lock.yaml
 
 
 
-# TypeScript build cache
-.cache/
-.next/
+
 

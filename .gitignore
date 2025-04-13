@@ -45,8 +45,3 @@ pnpm-lock.yaml
 .cache/
 .next/
 
-# Database files
-*.sqlite
-*.sqlite-journal
-dump.rdb
-*.sql

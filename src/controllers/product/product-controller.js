@@ -7,7 +7,7 @@ const {
   baseUpdate,
   basePatch,
   baseDestroy,
-} = require("../base");
+} = require("../../utils");
 
 const model = "product";
 const field = "product_code";

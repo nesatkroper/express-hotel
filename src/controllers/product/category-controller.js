@@ -6,7 +6,7 @@ const {
   baseUpdate,
   basePatch,
   baseDestroy,
-} = require("../base");
+} = require("../../utils");
 
 const model = "category";
 const field = "categoryCode";

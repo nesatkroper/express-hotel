@@ -1,10 +1,10 @@
 const prisma = require("@/provider/client");
-const { baseSelect, basePatch } = require("../base");
+const { baseSelect } = require("../../utils");
 
 const select = async (req, res) => {
   try {
     const result = await baseSelect(
-      "groupmessage",
+      "notification",
       req.params.id,
       req.query,
       "createdAt"
@@ -21,11 +21,11 @@ const select = async (req, res) => {
 
 const create = async (message) => {
   try {
-    const newChat = await prisma.groupmessage.create({
+    const newChat = await prisma.notification.create({
       data: {
         authId: message.authId,
         content: message.content,
-        time: message.time,
+        title: message.title,
       },
     });
 
@@ -36,13 +36,4 @@ const create = async (message) => {
   }
 };
 
-const patch = async (message) => {
-  const result = await basePatch(
-    "groupmessage",
-    message.id,
-    message,
-    "updatedAt"
-  );
-};
-
-module.exports = { select, create, patch };
+module.exports = { select, create };

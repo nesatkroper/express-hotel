@@ -67,7 +67,6 @@ const register = async (req, res) => {
         password: hashedPass,
         roleId: authRole.roleId,
         employeeId: parseInt(employeeId, 10),
-        customerId: parseInt(customerId, 10),
       },
       include: { role: true },
     });
@@ -98,7 +97,7 @@ const login = async (req, res) => {
 
     const auth = await prismaClient.auth.findUnique({
       where: { email },
-      include: { role: true, employee: true, customer: true },
+      include: { role: true, employee: true },
     });
 
     if (!auth) return res.status(404).json({ error: "auth not found" });
@@ -144,7 +143,7 @@ const logout = async (req, res) => {
 const getAllAuth = async (req, res) => {
   try {
     const auths = await prismaClient.auth.findMany({
-      include: { role: true, employee: true, customer: true },
+      include: { role: true, employee: true },
     });
     return res.status(200).json(auths);
   } catch (err) {
@@ -157,7 +156,7 @@ const getAuth = async (req, res) => {
   try {
     const auth = await prismaClient.auth.findUnique({
       where: { authId: req.auth.authId },
-      include: { role: true, employee: true, customer: true },
+      include: { role: true, employee: true },
     });
 
     if (!auth) return res.status(404).json({ error: "auth not found" });

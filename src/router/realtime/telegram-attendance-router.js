@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const {
   sendAttendance,
-} = require("@/controllers/notification/telegram-attendance-controller");
+} = require("@/controllers/realtime/telegram-attendance-controller");
 
 router.post("/", sendAttendance);
 module.exports = router;

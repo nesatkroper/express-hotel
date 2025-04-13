@@ -9,7 +9,6 @@ const modelSchemas = {
     password: "String",
     roleId: "String",
     employeeId: "String",
-    customerId: "String",
     status: "String",
   },
   attendace: {

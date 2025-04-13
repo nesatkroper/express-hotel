@@ -4,7 +4,7 @@ const {
   baseUpdate,
   basePatch,
   baseDestroy,
-} = require("../base");
+} = require("../../utils");
 
 const model = "sale";
 

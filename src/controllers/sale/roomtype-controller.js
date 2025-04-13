@@ -4,9 +4,9 @@ const {
   baseUpdate,
   basePatch,
   baseDestroy,
-} = require("../base");
+} = require("../../utils");
 
-const model = "reservation";
+const model = "roomtype";
 
 const select = async (req, res) => {
   try {
@@ -30,6 +30,7 @@ const select = async (req, res) => {
 const create = async (req, res) => {
   try {
     const data = { ...req.body };
+
     const result = await baseCreate(model, data);
     return res.status(201).json(result);
   } catch (err) {

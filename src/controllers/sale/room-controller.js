@@ -1,15 +1,12 @@
-const path = require("path");
-const { uploadPath } = require("@/provider/upload-path");
-
 const {
   baseSelect,
   baseCreate,
   baseUpdate,
   basePatch,
   baseDestroy,
-} = require("../base");
+} = require("../../utils");
 
-const model = "roompicture";
+const model = "room";
 
 const select = async (req, res) => {
   try {
@@ -17,7 +14,7 @@ const select = async (req, res) => {
       model,
       req.params.id,
       req.query,
-      `${model}_id`
+      `createdAt`
     );
 
     if (!result || (Array.isArray(result) && !result.length)) {
@@ -32,8 +29,7 @@ const select = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const picture = req.file ? path.basename(req.file.path) : null;
-    const data = { ...req.body, picture };
+    const data = { ...req.body, room_name: `ROOM-${req.body.room_name}` };
 
     const result = await baseCreate(model, data);
     return res.status(201).json(result);
@@ -45,13 +41,7 @@ const create = async (req, res) => {
 
 const update = async (req, res) => {
   try {
-    const result = await baseUpdate(
-      model,
-      req.params.id,
-      req.body,
-      req.file,
-      uploadPath
-    );
+    const result = await baseUpdate(model, req.params.id, req.body);
 
     return res.status(201).json(result);
   } catch (err) {

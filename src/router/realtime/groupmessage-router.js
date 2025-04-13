@@ -4,7 +4,7 @@ const router = express.Router();
 const {
   select,
   patch,
-} = require("@/controllers/message/groupmessage-controller");
+} = require("@/controllers/realtime/groupmessage-controller");
 
 router.get("/group/:id?", select);
 router.patch("/group/:id", patch);

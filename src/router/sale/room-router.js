@@ -8,7 +8,7 @@ const {
   update,
   patch,
   destroy,
-} = require("@/controllers/reservation/room-controller");
+} = require("@/controllers/sale/room-controller");
 
 router.get("/:id?", select);
 router.post("/", create);

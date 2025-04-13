@@ -1,9 +1,9 @@
 const {
   create: msgCreate,
-} = require("@/controllers/message/groupmessage-controller");
+} = require("@/controllers/realtime/groupmessage-controller");
 const {
   create: ntfCreate,
-} = require("@/controllers/notification/notification-controller");
+} = require("@/controllers/realtime/notification-controller");
 
 const setupSocket = (io, db) => {
   io.on("connection", (socket) => {

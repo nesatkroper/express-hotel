@@ -1,9 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const {
-  select,
-} = require("@/controllers/notification/notification-controller");
+const { select } = require("@/controllers/realtime/notification-controller");
 
 router.get("/:id?", select);
 

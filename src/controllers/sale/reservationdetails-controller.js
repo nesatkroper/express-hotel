@@ -4,9 +4,9 @@ const {
   baseUpdate,
   basePatch,
   baseDestroy,
-} = require("../base");
+} = require("../../utils");
 
-const model = "room";
+const model = "reservedetail";
 
 const select = async (req, res) => {
   try {
@@ -14,7 +14,7 @@ const select = async (req, res) => {
       model,
       req.params.id,
       req.query,
-      `createdAt`
+      `${model}_id`
     );
 
     if (!result || (Array.isArray(result) && !result.length)) {
@@ -29,7 +29,7 @@ const select = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const data = { ...req.body, room_name: `ROOM-${req.body.room_name}` };
+    const data = { ...req.body };
 
     const result = await baseCreate(model, data);
     return res.status(201).json(result);

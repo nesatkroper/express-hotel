@@ -4,8 +4,12 @@ const {
 const {
   create: ntfCreate,
 } = require("@/controllers/realtime/notification-controller");
+const { createAdapter } = require("@socket.io/redis-adapter");
+const { redisClient } = require("@/middleware/redis-middleware");
 
 const setupSocket = (io, db) => {
+  io.adapter(createAdapter(redisClient, redisClient.duplicate()));
+
   io.on("connection", (socket) => {
     console.log(`✅ User connected: ${socket.id}`);
 

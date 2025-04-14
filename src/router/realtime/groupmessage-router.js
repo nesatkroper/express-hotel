@@ -6,7 +6,7 @@ const {
   patch,
 } = require("@/controllers/realtime/groupmessage-controller");
 
-router.get("/group/:id?", select);
-router.patch("/group/:id", patch);
+router.get("/:id?", select);
+router.patch("/:id", patch);
 
 module.exports = router;

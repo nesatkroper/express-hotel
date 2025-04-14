@@ -4,7 +4,6 @@ const router = express.Router();
 const routers = require("@/router/export-router");
 const prisma = require("@/provider/client");
 const { baseSelect } = require("@/utils/convert-data");
-// const { cacheMiddleware } = require("@/middleware/cach-middleware");
 
 Object.entries(routers).forEach(([routeName, routeHandler]) => {
   const path = `/${routeName.replace("Router", "").toLowerCase()}`;

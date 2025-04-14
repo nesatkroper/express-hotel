@@ -1,99 +1,105 @@
 const prisma = require("@/provider/client");
-
-/**
- * @Retrieves records with advanced query capabilities
- * @param {string} model - Prisma model name
- * @param {string|number} [id] - Optional record ID for single record lookup
- * @param {object} [queryParams] - Query parameters
- * @param {string} [queryParams.order] - Sort order ('asc' or 'desc')
- * @param {string} [queryParams.status] - Status filter
- * @param {string} [queryParams.where] - Additional where condition value
- * @param {number} [queryParams.page] - Page number for pagination
- * @param {number} [queryParams.limit] - Items per page
- * @param {object} [queryParams.relations] - Relations to include
- * @param {string} [orderField='id'] - Field to order by
- * @param {string} [whereField] - Field for additional where condition
- * @returns {Promise<object>} Query results with optional pagination metadata
- */
+const {
+  generateCacheKey,
+  getCached,
+  setCached,
+} = require("@/utils/base-redis");
 
 const baseSelect = async (
   model,
   id,
   queryParams = {},
-  orderField = "id",
+  orderField = "createdAt",
   whereField = null
 ) => {
-  // @Validate model exists
-  if (!prisma[model]) {
-    throw new Error(`Prisma model "${model}" not found`);
-  }
+  if (!prisma[model]) throw new Error(`Prisma model "${model}" not found`);
 
-  const {
-    order = "desc",
-    status = "",
-    where,
-    page,
-    limit,
-    ...relations
-  } = queryParams;
+  const cacheKey = generateCacheKey(model, { id, ...queryParams });
 
   try {
-    // return await prisma.$transaction(async (tx) => {
+    const cachedData = await getCached(cacheKey);
+    if (cachedData) {
+      console.log(`✅ Serving ${model} from cache`);
+      return cachedData;
+    }
+
     const tx = prisma;
     const whereCondition = {};
+    const {
+      order = "desc",
+      status = "",
+      where,
+      page,
+      limit,
+      include,
+      select,
+      ...relations
+    } = queryParams;
 
-    if (id) {
-      whereCondition[`${model}Id`] = id;
-    }
+    if (id) whereCondition[`${model}Id`] = id;
+    if (where && whereField) whereCondition[whereField] = where;
 
-    if (where && whereField) {
-      whereCondition[whereField] = where;
-    }
-
-    // @Handle status filtering if the model supports it
     if (status && status !== "all") {
       try {
-        // @Check if model has status field
         const modelFields = Object.keys(tx[model].fields);
-        if (modelFields.includes("status")) {
+        if (modelFields.includes("status"))
           whereCondition.status = status === "" ? "active" : status;
-        }
-      } catch {
-        // @Silently ignore if we can't check fields
-      }
+      } catch {}
     }
 
-    // @Handle pagination
     const pageNumber = page ? parseInt(page, 10) : null;
     const pageSize = limit ? parseInt(limit, 10) : null;
     const skip =
       pageNumber && pageSize ? (pageNumber - 1) * pageSize : undefined;
     const take = pageSize || undefined;
 
-    // @Process relation includes
-    const include = {};
-    for (const [key, value] of Object.entries(relations)) {
-      include[key] = value === "true";
+    let finalSelect = {};
+    let finalInclude = {};
+
+    if (select) {
+      try {
+        finalSelect = JSON.parse(select);
+      } catch (e) {
+        console.warn("⚠️ Select parameter is not valid JSON", e);
+      }
+    }
+
+    if (include) {
+      try {
+        finalInclude = JSON.parse(include);
+      } catch (e) {
+        console.warn(
+          "⚠️ Include parameter is not valid JSON, using simple includes",
+          e
+        );
+        for (const [key, value] of Object.entries(relations))
+          if (value === "true") finalInclude[key] = true;
+      }
+    }
+
+    if (Object.keys(finalInclude).length === 0) {
+      for (const [key, value] of Object.entries(relations)) {
+        if (value === "true") finalInclude[key] = true;
+      }
     }
 
     if (id) {
-      // @Single record lookup
       const selectData = await tx[model].findUnique({
         where: whereCondition,
-        include: Object.keys(include).length ? include : undefined,
+        select: Object.keys(finalSelect).length ? finalSelect : undefined,
+        include: Object.keys(finalInclude).length ? finalInclude : undefined,
       });
 
-      if (!selectData) {
-        throw new Error(`${model} with ID ${id} not found`);
-      }
+      if (!selectData) throw new Error(`❌ ${model} with ID ${id} not found`);
 
+      await setCached(cacheKey, { data: selectData });
       return { data: selectData };
     } else {
-      // @Multiple records with pagination
       const [items, total] = await Promise.all([
         tx[model].findMany({
           where: whereCondition,
-          include: Object.keys(include).length ? include : undefined,
+          select: Object.keys(finalSelect).length ? finalSelect : undefined,
+          include: Object.keys(finalInclude).length ? finalInclude : undefined,
           orderBy: {
             [orderField]: order,
           },
@@ -103,25 +109,26 @@ const baseSelect = async (
         tx[model].count({ where: whereCondition }),
       ]);
 
-      if (pageNumber && pageSize) {
-        return {
-          data: items,
-          meta: {
-            total,
-            page: pageNumber,
-            limit: pageSize,
-            totalPages: Math.ceil(total / pageSize),
-            hasNextPage: pageNumber * pageSize < total,
-            hasPreviousPage: pageNumber > 1,
-          },
-        };
-      }
+      const result =
+        pageNumber && pageSize
+          ? {
+              data: items,
+              meta: {
+                total,
+                page: pageNumber,
+                limit: pageSize,
+                totalPages: Math.ceil(total / pageSize),
+                hasNextPage: pageNumber * pageSize < total,
+                hasPreviousPage: pageNumber > 1,
+              },
+            }
+          : { data: items };
 
-      return { data: items };
+      await setCached(cacheKey, result);
+      return result;
     }
-    // });
   } catch (err) {
-    console.error(`Error in baseSelect for model ${model}:`, {
+    console.error(`❌ Error in baseSelect for model ${model}:`, {
       error: err.message,
       id,
       queryParams,
@@ -129,13 +136,13 @@ const baseSelect = async (
 
     if (err.code === "P2009") {
       throw new Error(
-        `Invalid query syntax for model ${model}. Check your parameters.`
+        `❌ Invalid query syntax for model ${model}. Check your parameters.`
       );
     }
 
     if (err.message.includes("orderBy")) {
       throw new Error(
-        `Cannot order by '${orderField}' in model '${model}'. Valid fields are: ${Object.keys(
+        `❌ Cannot order by '${orderField}' in model '${model}'. Valid fields are: ${Object.keys(
           prisma[model].fields
         ).join(", ")}`
       );
@@ -143,7 +150,7 @@ const baseSelect = async (
 
     if (err.message.includes("include")) {
       throw new Error(
-        `Invalid relation included for model ${model}. Valid relations are: ${Object.keys(
+        `❌ Invalid relation included for model ${model}. Valid relations are: ${Object.keys(
           prisma[model].relations
         ).join(", ")}`
       );
@@ -157,31 +164,60 @@ module.exports = {
   baseSelect,
 };
 
-// const prisma = require("@/provider/client");
+// if (pageNumber && pageSize) {
+//   return {
+//     data: items,
+//     meta: {
+//       total,
+//       page: pageNumber,
+//       limit: pageSize,
+//       totalPages: Math.ceil(total / pageSize),
+//       hasNextPage: pageNumber * pageSize < total,
+//       hasPreviousPage: pageNumber > 1,
+//     },
+//   };
+// }
 
 // const baseSelect = async (
-// model,
-// id,
-// queryParams,
-// orderField = "id",
-// whereField = null
+//   model,
+//   id,
+//   queryParams = {},
+//   orderField = "id",
+//   whereField = null
 // ) => {
-// const {
-//     order = "desc",
-//     status = "",
-//     where,
-//     page,
-//     limit,
-//     ...relations
-// } = queryParams;
+//   if (!prisma[model]) throw new Error(`Prisma model "${model}" not found`);
 
-// try {
-//     let whereCondition = {};
+//   const cacheKey = generateCacheKey(model, { id, ...queryParams });
+
+//   try {
+//     const cachedData = await getCached(cacheKey);
+//     if (cachedData) {
+//       console.log(`✅ Serving ${model} from cache`);
+//       return cachedData;
+//     }
+
+//     const tx = prisma;
+//     const whereCondition = {};
+//     const {
+//       order = "desc",
+//       status = "",
+//       where,
+//       page,
+//       limit,
+//       include,
+//       ...relations
+//     } = queryParams;
+
 //     if (id) whereCondition[`${model}Id`] = id;
 //     if (where && whereField) whereCondition[whereField] = where;
 
-//     if (status && status !== "all")
-//       whereCondition.status = status === "" ? "active" : status;
+//     if (status && status !== "all") {
+//       try {
+//         const modelFields = Object.keys(tx[model].fields);
+//         if (modelFields.includes("status"))
+//           whereCondition.status = status === "" ? "active" : status;
+//       } catch {}
+//     }
 
 //     const pageNumber = page ? parseInt(page, 10) : null;
 //     const pageSize = limit ? parseInt(limit, 10) : null;
@@ -189,65 +225,95 @@ module.exports = {
 //       pageNumber && pageSize ? (pageNumber - 1) * pageSize : undefined;
 //     const take = pageSize || undefined;
 
+//     let finalInclude = {};
+
+//     // Handle nested includes from JSON
+//     if (include) {
+//       try {
+//         finalInclude = JSON.parse(include);
+//       } catch (e) {
+//         console.warn("⚠️ Include parameter is not valid JSON, using simple includes");
+//       }
+//     }
+
+//     // Fallback to simple includes if no nested includes were provided
+//     if (Object.keys(finalInclude).length === 0) {
+//       for (const [key, value] of Object.entries(relations)) {
+//         if (value === "true") finalInclude[key] = true;
+//       }
+//     }
+
 //     if (id) {
-//       const selectData = await prisma[model].findUnique({
+//       const selectData = await tx[model].findUnique({
 //         where: whereCondition,
-//         include: Object.fromEntries(
-//           Object.entries(relations).map(([key, value]) => [
-//             key,
-//             value === "true",
-//           ])
-//         ),
+//         include: Object.keys(finalInclude).length ? finalInclude : undefined,
 //       });
 
-//       console.table(selectData);
+//       if (!selectData) throw new Error(`❌ ${model} with ID ${id} not found`);
+
+//       await setCached(cacheKey, { data: selectData });
 //       return { data: selectData };
 //     } else {
 //       const [items, total] = await Promise.all([
-//         prisma[model].findMany({
+//         tx[model].findMany({
 //           where: whereCondition,
-//           include: Object.fromEntries(
-//             Object.entries(relations).map(([key, value]) => [
-//               key,
-//               value === "true",
-//             ])
-//           ),
-//           orderBy: { [orderField]: order },
+//           include: Object.keys(finalInclude).length ? finalInclude : undefined,
+//           orderBy: {
+//             [orderField]: order,
+//           },
 //           skip,
 //           take,
 //         }),
-//         prisma[model].count({ where: whereCondition }),
+//         tx[model].count({ where: whereCondition }),
 //       ]);
 
-//       return pageNumber && pageSize
-//         ? {
-//             data: items,
-//             meta: {
-//               total,
-//               page: pageNumber,
-//               limit: pageSize,
-//               totalPages: Math.ceil(total / pageSize),
-//             },
-//           }
-//         : { data: items };
+//       const result =
+//         pageNumber && pageSize
+//           ? {
+//               data: items,
+//               meta: {
+//                 total,
+//                 page: pageNumber,
+//                 limit: pageSize,
+//                 totalPages: Math.ceil(total / pageSize),
+//                 hasNextPage: pageNumber * pageSize < total,
+//                 hasPreviousPage: pageNumber > 1,
+//               },
+//             }
+//           : { data: items };
+
+//       await setCached(cacheKey, result);
+//       return result;
 //     }
-// } catch (err) {
-//     console.log("Error in baseSelect:", err);
-//     if (
-//       err.code === "P2009" ||
-//       (typeof err.message === "string" && err.message.includes("status"))
-//     )
-//       throw new Error(
-//         `Model ${model} does not support status filtering. Try again without status parameters`
-//       );
+//   } catch (err) {
+//     console.error(`❌ Error in baseSelect for model ${model}:`, {
+//       error: err.message,
+//       id,
+//       queryParams,
+//     });
 
-//     if (typeof err.message === "string" && err.message.includes("orderBy"))
+//     if (err.code === "P2009") {
 //       throw new Error(
-//         `Invalid orderBy field '${orderField}' for model '${model}'. Check your schema for valid fields.`
+//         `❌ Invalid query syntax for model ${model}. Check your parameters.`
 //       );
+//     }
 
-//     throw new Error(err.message);
-// }
+//     if (err.message.includes("orderBy")) {
+//       throw new Error(
+//         `❌ Cannot order by '${orderField}' in model '${model}'. Valid fields are: ${Object.keys(
+//           prisma[model].fields
+//         ).join(", ")}`
+//       );
+//     }
+
+//     if (err.message.includes("include")) {
+//       throw new Error(
+//         `❌ Invalid relation included for model ${model}. Valid relations are: ${Object.keys(
+//           prisma[model].relations
+//         ).join(", ")}`
+//       );
+//     }
+
+//     throw err;
+//   }
 // };
-
-// module.exports = { baseSelect };

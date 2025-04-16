@@ -1,3 +1,4 @@
+const { invalidate } = require("@/utils/base-redis");
 const {
   baseSelect,
   baseCreate,
@@ -5,7 +6,6 @@ const {
   basePatch,
   baseDestroy,
 } = require("../../utils");
-
 const model = "department";
 const field = "departmentCode";
 const prefix = "DEP";
@@ -38,6 +38,7 @@ const create = async (req, res) => {
       prefix,
       idField: `${model}Id`,
     });
+    await invalidate("department:*");
     return res.status(201).json(result);
   } catch (err) {
     console.error(`Error creating ${model}:`, err);

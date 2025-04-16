@@ -1,3 +1,4 @@
+const { invalidate } = require("@/utils/base-redis");
 const {
   baseSelect,
   baseCreate,
@@ -44,6 +45,8 @@ const create = async (req, res) => {
       },
       pad
     );
+
+    await invalidate("position:*");
     return res.status(201).json(result);
   } catch (err) {
     console.error(`Error creating ${model}:`, err);

@@ -10,7 +10,6 @@ const helmet = require("helmet");
 const prisma = require("@/provider/client");
 const bodyParser = require("body-parser");
 const protectedStatic = require("./src/middleware/static-middleware");
-const authJWT = require("./src/middleware/auth-middleware");
 const errorHandler = require("@/middleware/error-handler-middleware");
 const { limiter } = require("@/middleware/limit-middleware");
 const { redisClient } = require("@/middleware/redis-middleware");
@@ -75,7 +74,9 @@ app.use(
 
 app.use(
   "/uploads",
-  protectedStatic(path.join(__dirname, "public/uploads"), authJWT)
+  protectedStatic(path.join(__dirname, "public/uploads"), {
+    requireAuth: false,
+  })
 );
 app.use("/v1", router);
 

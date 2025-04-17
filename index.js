@@ -11,12 +11,10 @@ const prisma = require("@/provider/client");
 const bodyParser = require("body-parser");
 const protectedStatic = require("./src/middleware/static-middleware");
 const errorHandler = require("@/middleware/error-handler-middleware");
+const { Server } = require("socket.io");
 const { limiter } = require("@/middleware/limit-middleware");
 const { redisClient } = require("@/middleware/redis-middleware");
-const { Server } = require("socket.io");
-const {
-  setupSocket,
-} = require("@/controllers/realtime/setup-socket-controller");
+const { setupSocket } = require("@/middleware/socket-middleware");
 const {
   allowedOrigins,
   allowedHeaders,

@@ -14,7 +14,7 @@ const setupSocket = (io, db) => {
     console.log(`✅ User connected: ${socket.id}`);
 
     socket.on("sendMessage", async (message) => {
-      console.log("Received message:", message);
+      console.table("✅ Received message:", message);
       io.emit("receiveMessage", message);
     });
 

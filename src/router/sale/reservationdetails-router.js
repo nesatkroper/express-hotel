@@ -7,7 +7,7 @@ const {
   create,
   update,
   destroy,
-} = require("@/controllers/reservation/reservationdetails-controller");
+} = require("@/controllers/sale/reservationdetails-controller");
 
 router.get("/:id?", select);
 router.post("/", create);

@@ -1,4 +1,5 @@
 const path = require("path");
+const { invalidate } = require("@/utils/base-redis");
 const { uploadPath } = require("@/provider/upload-path");
 const {
   baseSelect,
@@ -6,7 +7,7 @@ const {
   baseUpdate,
   basePatch,
   baseDestroy,
-} = require("../base");
+} = require("../../utils");
 
 const model = "category";
 const field = "categoryCode";
@@ -39,8 +40,9 @@ const create = async (req, res) => {
     const result = await baseCreate(model, data, {
       field,
       prefix,
-      idField: `${model}_id`,
+      idField: `${model}Id`,
     });
+    await invalidate("category:*");
     return res.status(201).json(result);
   } catch (err) {
     console.error(`Error creating ${model}:`, err);

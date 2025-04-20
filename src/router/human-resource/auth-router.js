@@ -9,7 +9,7 @@ const {
   logout,
   getAllAuth,
   getAuth,
-} = require("@/controllers/homan-resource/auth-controller");
+} = require("@/controllers/human-resource/auth-controller");
 
 router.post("/register", register);
 router.post("/login", login);

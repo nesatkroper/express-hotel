@@ -8,7 +8,7 @@ const {
   create,
   update,
   destroy,
-} = require("@/controllers/reservation/roompicture-controller");
+} = require("@/controllers/sale/roompicture-controller");
 
 router.get("/:id?", select);
 router.post("/", upload.single("picture"), create);

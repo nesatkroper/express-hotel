@@ -10,12 +10,12 @@ const {
   update,
   patch,
   destroy,
-} = require("@/controllers/homan-resource/employee-controller");
+} = require("@/controllers/human-resource/employee-controller");
 
 const {
   createInfo,
   updateInfo,
-} = require("@/controllers/homan-resource/employeeinfo-controller");
+} = require("@/controllers/human-resource/employeeinfo-controller");
 
 router.get("/:id?", select);
 router.post("/", create);

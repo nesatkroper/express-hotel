@@ -1,4 +1,5 @@
 const path = require("path");
+const { invalidate } = require("@/utils/base-redis");
 const { uploadPath } = require("@/provider/upload-path");
 
 const {
@@ -7,10 +8,10 @@ const {
   baseUpdate,
   basePatch,
   baseDestroy,
-} = require("../base");
+} = require("../../utils");
 
 const model = "product";
-const field = "product_code";
+const field = "productCode";
 const prefix = "PRO";
 
 const select = async (req, res) => {
@@ -40,8 +41,10 @@ const create = async (req, res) => {
     const result = await baseCreate(model, data, {
       field,
       prefix,
-      idField: `${model}_id`,
+      idField: `${model}Id`,
     });
+
+    await invalidate("product:*");
     return res.status(201).json(result);
   } catch (err) {
     console.error(`Error creating ${model}:`, err);

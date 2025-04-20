@@ -7,7 +7,7 @@ const {
   update,
   patch,
   destroy,
-} = require("@/controllers/homan-resource/department-controller");
+} = require("@/controllers/human-resource/department-controller");
 
 router.get("/:id?", select);
 router.post("/", create);

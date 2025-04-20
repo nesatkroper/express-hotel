@@ -2,12 +2,28 @@ const express = require("express");
 const expressListEndpoints = require("express-list-endpoints");
 const router = express.Router();
 const routers = require("@/router/export-router");
-const { baseSelect } = require("@/controllers/base/convert-data");
-// const { cacheMiddleware } = require("@/middleware/cach-middleware");
+const prisma = require("@/provider/client");
+const { baseSelect } = require("@/utils/convert-data");
 
 Object.entries(routers).forEach(([routeName, routeHandler]) => {
   const path = `/${routeName.replace("Router", "").toLowerCase()}`;
   router.use(path, routeHandler);
+});
+
+router.get("/status", async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.status(200).json({
+      api: "ok",
+      database: "connected",
+    });
+  } catch (err) {
+    console.error("❌ DB check failed:", err);
+    res.status(500).json({
+      api: "ok",
+      database: "disconnected",
+    });
+  }
 });
 
 router.get("/log/:id?", async (req, res) => {
@@ -24,7 +40,7 @@ router.get("/log/:id?", async (req, res) => {
   }
 });
 
-router.get("/rl", (req, res) => {
+router.get("/routelist", (req, res) => {
   res.json(expressListEndpoints(router));
 });
 

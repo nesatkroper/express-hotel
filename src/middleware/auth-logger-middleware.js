@@ -1,6 +1,17 @@
 const prisma = require("@/provider/client");
 const morgan = require("morgan");
 
+/**
+ * Logs information to a database asynchronously.
+ * @param {string} authId - The authentication ID of the user.
+ * @param {string} method - The HTTP method used for the request.
+ * @param {string} url - The URL of the request.
+ * @param {number} status - The HTTP status code of the response.
+ * @param {number} responseTime - The response time in milliseconds.
+ * @param {string} ip - The IP address of the user.
+ * @param {string} userAgent - The user agent string of the client.
+ * @returns None
+ */
 const logToDB = async (
   authId,
   method,
@@ -32,7 +43,14 @@ morgan.token(
   (req, res) => res.get("X-Response-Time") || "0"
 );
 
-const dbLogger = morgan((tokens, req, res) => {
+/**
+ * Middleware function that logs HTTP request details using Morgan logger.
+ * @param {Object} tokens - Object containing functions to extract request details.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns null
+ */
+module.exports = morgan((tokens, req, res) => {
   const method = tokens.method(req, res);
   const url = tokens.url(req, res);
   const status = parseInt(tokens.status(req, res), 10);
@@ -76,5 +94,3 @@ const dbLogger = morgan((tokens, req, res) => {
 
   return null;
 });
-
-module.exports = dbLogger;

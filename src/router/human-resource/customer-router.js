@@ -9,7 +9,7 @@ const {
   update,
   patch,
   destroy,
-} = require("@/controllers/homan-resource/customer-controller");
+} = require("@/controllers/human-resource/customer-controller");
 
 router.get("/:id?", select);
 router.post("/", upload.single("picture"), create);

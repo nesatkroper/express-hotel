@@ -1,4 +1,9 @@
-const allowedOrigins = ["http://localhost:5173"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:8081",
+  "http://81.181.87.112",
+  "http://192.168.0.64",
+];
 
 const allowedHeaders = [
   "Origin",

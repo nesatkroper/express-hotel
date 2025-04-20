@@ -15,14 +15,17 @@ const { convertData } = require("./convert-data");
  * @returns {Promise<object>} Created/updated record
  */
 
-const baseCreate = async (model, data, options = {}, verbose = false) => {
-  // @Validate model exists before starting transaction
-  if (!prisma[model]) {
-    throw new Error(`Prisma model "${model}" not found`);
-  }
-  if (!modelSchemas[model]) {
+const baseCreate = async (
+  model,
+  data,
+  options = {},
+  verbose = false,
+  clear = false
+) => {
+  if (!prisma[model]) throw new Error(`Prisma model "${model}" not found`);
+
+  if (!modelSchemas[model])
     throw new Error(`Model schema for "${model}" not found`);
-  }
 
   return await prisma.$transaction(async (tx) => {
     try {
